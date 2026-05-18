@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 
 class ResearchRequest(BaseModel):
     question: str = Field(..., min_length=5)
+    language: str = "en"
 
 
 class Source(BaseModel):

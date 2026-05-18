@@ -57,4 +57,4 @@ def documents() -> dict[str, list[dict[str, str | int]]]:
 
 @router.post("/research", response_model=ResearchResponse)
 def research(request: ResearchRequest) -> ResearchResponse:
-    return run_policy_workflow(request.question)
+    return run_policy_workflow(request.question, request.language)

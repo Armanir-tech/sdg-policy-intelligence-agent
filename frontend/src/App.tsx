@@ -14,6 +14,9 @@ import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles/app.css";
 
+type Language = "en" | "tr";
+type TabId = "answer" | "brief" | "sources" | "validation";
+
 type Source = {
   title: string;
   location: string;
@@ -36,51 +39,193 @@ type IndexedDocument = {
   source_type: string;
 };
 
-const exampleResponse: ResearchResponse = {
-  question: "How can private sector finance support SDG implementation?",
-  answer:
-    "Private sector finance can support SDG implementation by expanding investment capacity, improving innovation diffusion, and helping governments close financing gaps when public budgets are constrained.",
-  policy_brief:
-    "Problem: SDG implementation often faces financing constraints.\n\nEvidence: Development finance literature highlights the role of blended finance, risk-sharing, and private capital mobilization.\n\nRecommendation: Build transparent financing mechanisms, define measurable impact targets, and monitor whether private participation improves inclusion rather than only increasing investment volume.",
-  sources: [
-    {
-      title: "Sample development policy report",
-      location: "Page 12",
-      excerpt: "Blended finance can mobilize private capital when risk-sharing mechanisms are transparent.",
+const copy = {
+  en: {
+    workspace: "Research agent workspace",
+    pills: ["Evidence retrieval", "Policy brief", "Validation"],
+    panelTitle: "Research request",
+    headline: "Ask a policy question and trace the evidence.",
+    intro:
+      "Search the report collection, inspect supporting passages, and turn findings into a structured policy brief.",
+    questionLabel: "Question",
+    analyzing: "Analyzing evidence",
+    run: "Run analysis",
+    documents: "documents",
+    sources: "sources",
+    status: "status",
+    ready: "Ready",
+    busy: "Busy",
+    addReport: "Add a report",
+    sampleIndexed: "Sample reports are already indexed.",
+    upload: "Upload PDF/TXT",
+    uploading: "Uploading",
+    indexing: "Indexing",
+    uploadFailed: "Upload failed. Use a PDF or TXT file and try again.",
+    indexedDocuments: "Indexed documents",
+    refresh: "Refresh",
+    noDocuments: "No indexed documents found yet.",
+    chunk: "chunks",
+    stageReady: "Ready",
+    stageSearching: "Searching indexed documents",
+    stageRetrieving: "Retrieving evidence",
+    stageWriting: "Writing answer and brief",
+    stageComplete: "Analysis complete",
+    stageFallback: "Fallback response shown",
+    stageIndexing: "Indexing uploaded document",
+    stageIndexed: "Document indexed",
+    stageUploadFailed: "Upload failed",
+    stageHelp:
+      "Uploading adds documents to the evidence index. Running analysis searches those indexed documents and returns the strongest source passages.",
+    result: "Analysis result",
+    sourceAware: "Source-aware",
+    tabs: {
+      answer: "Answer",
+      brief: "Policy brief",
+      sources: "Sources",
+      validation: "Validation",
     },
-    {
-      title: "Sample SDG financing note",
-      location: "Page 4",
-      excerpt: "Impact measurement is essential for aligning private investment with development outcomes.",
+    workflow: [
+      { step: "Retrieve", description: "Find matching report sections", key: "research" },
+      { step: "Analyze", description: "Summarize the strongest evidence", key: "analysis" },
+      { step: "Validate", description: "Check source coverage", key: "validation" },
+      { step: "Brief", description: "Draft policy recommendation", key: "brief" },
+    ],
+    exampleQuestion: "How can private sector finance support SDG implementation?",
+    uploadedQuestion: (fileName: string) => `What are the main findings and recommendations in ${fileName}?`,
+    indexedMessage: (fileName: string, chunks: number) => `${fileName} indexed with ${chunks} chunks.`,
+    uploadingMessage: (fileName: string) => `Uploading ${fileName}`,
+  },
+  tr: {
+    workspace: "Araştırma ajanı çalışma alanı",
+    pills: ["Kanıt arama", "Politika notu", "Doğrulama"],
+    panelTitle: "Araştırma isteği",
+    headline: "Politika sorunu sor, kanıtı adım adım izle.",
+    intro:
+      "Rapor koleksiyonunda ara, destekleyici pasajları incele ve bulguları yapılandırılmış bir politika notuna dönüştür.",
+    questionLabel: "Soru",
+    analyzing: "Kanıt analiz ediliyor",
+    run: "Analizi başlat",
+    documents: "belge",
+    sources: "kaynak",
+    status: "durum",
+    ready: "Hazır",
+    busy: "Çalışıyor",
+    addReport: "Rapor ekle",
+    sampleIndexed: "Örnek raporlar zaten indekslenmiş durumda.",
+    upload: "PDF/TXT yükle",
+    uploading: "Yükleniyor",
+    indexing: "İşleniyor",
+    uploadFailed: "Yükleme başarısız. PDF veya TXT dosyasıyla tekrar dene.",
+    indexedDocuments: "İndekslenen belgeler",
+    refresh: "Yenile",
+    noDocuments: "Henüz indekslenmiş belge bulunamadı.",
+    chunk: "parça",
+    stageReady: "Hazır",
+    stageSearching: "İndekslenen belgelerde aranıyor",
+    stageRetrieving: "Kanıtlar getiriliyor",
+    stageWriting: "Cevap ve brief yazılıyor",
+    stageComplete: "Analiz tamamlandı",
+    stageFallback: "Yedek cevap gösterildi",
+    stageIndexing: "Yüklenen belge indeksleniyor",
+    stageIndexed: "Belge indekslendi",
+    stageUploadFailed: "Yükleme başarısız",
+    stageHelp:
+      "Yükleme, belgeleri kanıt indeksine ekler. Analiz çalışınca sistem bu belgelerde arama yapar ve en güçlü kaynak pasajlarını döndürür.",
+    result: "Analiz sonucu",
+    sourceAware: "Kaynaklı",
+    tabs: {
+      answer: "Cevap",
+      brief: "Politika notu",
+      sources: "Kaynaklar",
+      validation: "Doğrulama",
     },
-  ],
-  validation_notes: ["2 supporting sources found", "Policy brief includes problem, evidence, and recommendation sections"],
-  workflow_steps: ["research", "analysis", "validation", "brief"],
+    workflow: [
+      { step: "Getir", description: "İlgili rapor bölümlerini bul", key: "research" },
+      { step: "Analiz et", description: "En güçlü kanıtı özetle", key: "analysis" },
+      { step: "Doğrula", description: "Kaynak kapsamını kontrol et", key: "validation" },
+      { step: "Brief yaz", description: "Politika önerisini hazırla", key: "brief" },
+    ],
+    exampleQuestion: "Özel sektör finansmanı SKA uygulamasını nasıl destekleyebilir?",
+    uploadedQuestion: (fileName: string) => `${fileName} içindeki ana bulgular ve öneriler nelerdir?`,
+    indexedMessage: (fileName: string, chunks: number) => `${fileName} ${chunks} parça olarak indekslendi.`,
+    uploadingMessage: (fileName: string) => `${fileName} yükleniyor`,
+  },
+};
+
+const exampleResponses: Record<Language, ResearchResponse> = {
+  en: {
+    question: copy.en.exampleQuestion,
+    answer:
+      "Private sector finance can support SDG implementation by expanding investment capacity, improving innovation diffusion, and helping governments close financing gaps when public budgets are constrained.",
+    policy_brief:
+      "Problem: SDG implementation often faces financing constraints.\n\nEvidence: Development finance literature highlights the role of blended finance, risk-sharing, and private capital mobilization.\n\nRecommendation: Build transparent financing mechanisms, define measurable impact targets, and monitor whether private participation improves inclusion rather than only increasing investment volume.",
+    sources: [
+      {
+        title: "Sample development policy report",
+        location: "Page 12",
+        excerpt: "Blended finance can mobilize private capital when risk-sharing mechanisms are transparent.",
+      },
+      {
+        title: "Sample SDG financing note",
+        location: "Page 4",
+        excerpt: "Impact measurement is essential for aligning private investment with development outcomes.",
+      },
+    ],
+    validation_notes: ["2 supporting sources found", "Policy brief includes problem, evidence, and recommendation sections"],
+    workflow_steps: ["research", "analysis", "validation", "brief"],
+  },
+  tr: {
+    question: copy.tr.exampleQuestion,
+    answer:
+      "Özel sektör finansmanı, yatırım kapasitesini artırarak, yeniliklerin yayılmasını hızlandırarak ve kamu bütçelerinin sınırlı kaldığı alanlarda finansman açığını azaltarak SKA uygulamasını destekleyebilir.",
+    policy_brief:
+      "Problem: SKA uygulaması çoğu zaman finansman kısıtlarıyla karşılaşır.\n\nKanıt: Kalkınma finansmanı literatürü karma finansman, risk paylaşımı ve özel sermaye mobilizasyonunun önemini vurgular.\n\nÖneri: Şeffaf finansman mekanizmaları kurulmalı, ölçülebilir etki hedefleri tanımlanmalı ve özel sektör katılımının kapsayıcılığı artırıp artırmadığı izlenmelidir.",
+    sources: [
+      {
+        title: "Örnek kalkınma politikası raporu",
+        location: "Sayfa 12",
+        excerpt: "Risk paylaşımı mekanizmaları şeffaf olduğunda karma finansman özel sermayeyi harekete geçirebilir.",
+      },
+      {
+        title: "Örnek SKA finansmanı notu",
+        location: "Sayfa 4",
+        excerpt: "Etki ölçümü, özel yatırımın kalkınma sonuçlarıyla uyumlu olması için gereklidir.",
+      },
+    ],
+    validation_notes: ["2 destekleyici kaynak bulundu", "Politika notu problem, kanıt ve öneri bölümlerini içeriyor"],
+    workflow_steps: ["research", "analysis", "validation", "brief"],
+  },
 };
 
 const apiBaseUrl =
   import.meta.env.VITE_API_BASE_URL || `${window.location.protocol}//${window.location.hostname}:8000`;
 
-const workflowSteps: Array<{
-  step: string;
-  description: string;
-  Icon: LucideIcon;
-}> = [
-  { step: "Retrieve", description: "Find matching report sections", Icon: FileSearch },
-  { step: "Analyze", description: "Summarize the strongest evidence", Icon: LineChart },
-  { step: "Validate", description: "Check source coverage", Icon: ShieldCheck },
-  { step: "Brief", description: "Draft policy recommendation", Icon: BookOpenText },
-];
+const workflowIcons: Record<string, LucideIcon> = {
+  research: FileSearch,
+  analysis: LineChart,
+  validation: ShieldCheck,
+  brief: BookOpenText,
+};
 
 function App() {
-  const [question, setQuestion] = useState(exampleResponse.question);
-  const [result, setResult] = useState<ResearchResponse>(exampleResponse);
+  const [language, setLanguage] = useState<Language>("en");
+  const t = copy[language];
+  const [question, setQuestion] = useState(exampleResponses.en.question);
+  const [result, setResult] = useState<ResearchResponse>(exampleResponses.en);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [uploadMessage, setUploadMessage] = useState("Sample reports are already indexed.");
+  const [uploadMessage, setUploadMessage] = useState(copy.en.sampleIndexed);
   const [documents, setDocuments] = useState<IndexedDocument[]>([]);
-  const [currentStage, setCurrentStage] = useState("Ready");
-  const [activeTab, setActiveTab] = useState<"answer" | "brief" | "sources" | "validation">("answer");
+  const [currentStage, setCurrentStage] = useState(copy.en.stageReady);
+  const [activeTab, setActiveTab] = useState<TabId>("answer");
+
+  function switchLanguage(nextLanguage: Language) {
+    setLanguage(nextLanguage);
+    setQuestion(exampleResponses[nextLanguage].question);
+    setResult(exampleResponses[nextLanguage]);
+    setUploadMessage(copy[nextLanguage].sampleIndexed);
+    setCurrentStage(copy[nextLanguage].stageReady);
+  }
 
   async function refreshDocuments() {
     try {
@@ -102,27 +247,27 @@ function App() {
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setLoading(true);
-    setCurrentStage("Searching indexed documents");
+    setCurrentStage(String(t.stageSearching));
 
     try {
       await new Promise((resolve) => window.setTimeout(resolve, 250));
-      setCurrentStage("Retrieving evidence");
+      setCurrentStage(String(t.stageRetrieving));
       const response = await fetch(`${apiBaseUrl}/research`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({ question, language }),
       });
 
       if (!response.ok) {
         throw new Error("Request failed");
       }
 
-      setCurrentStage("Writing answer and brief");
+      setCurrentStage(String(t.stageWriting));
       setResult(await response.json());
-      setCurrentStage("Analysis complete");
+      setCurrentStage(String(t.stageComplete));
     } catch {
-      setResult({ ...exampleResponse, question });
-      setCurrentStage("Fallback response shown");
+      setResult({ ...exampleResponses[language], question });
+      setCurrentStage(String(t.stageFallback));
     } finally {
       setLoading(false);
     }
@@ -137,8 +282,8 @@ function App() {
     const formData = new FormData();
     formData.append("file", file);
     setUploading(true);
-    setUploadMessage(`Uploading ${file.name}`);
-    setCurrentStage("Indexing uploaded document");
+    setUploadMessage(t.uploadingMessage(file.name));
+    setCurrentStage(String(t.stageIndexing));
 
     try {
       const response = await fetch(`${apiBaseUrl}/documents/upload`, {
@@ -151,13 +296,13 @@ function App() {
       }
 
       const payload = await response.json();
-      setUploadMessage(`${payload.file_name} indexed with ${payload.chunks} chunks.`);
+      setUploadMessage(t.indexedMessage(payload.file_name, payload.chunks));
       await refreshDocuments();
-      setQuestion(`What are the main findings and recommendations in ${payload.file_name}?`);
-      setCurrentStage("Document indexed");
+      setQuestion(t.uploadedQuestion(payload.file_name));
+      setCurrentStage(String(t.stageIndexed));
     } catch {
-      setUploadMessage("Upload failed. Use a PDF or TXT file and try again.");
-      setCurrentStage("Upload failed");
+      setUploadMessage(String(t.uploadFailed));
+      setCurrentStage(String(t.stageUploadFailed));
     } finally {
       setUploading(false);
       event.target.value = "";
@@ -171,38 +316,45 @@ function App() {
           <span className="brandMark">S</span>
           <div>
             <strong>SDG Policy Intelligence</strong>
-            <small>Research agent workspace</small>
+            <small>{String(t.workspace)}</small>
           </div>
         </div>
-        <nav className="navPills" aria-label="Workspace status">
-          <span>Evidence retrieval</span>
-          <span>Policy brief</span>
-          <span>Validation</span>
-        </nav>
+        <div className="topbarActions">
+          <nav className="navPills" aria-label="Workspace status">
+            {(t.pills as string[]).map((pill) => (
+              <span key={pill}>{pill}</span>
+            ))}
+          </nav>
+          <div className="languageToggle" aria-label="Language selector">
+            <button type="button" className={language === "en" ? "active" : ""} onClick={() => switchLanguage("en")}>
+              EN
+            </button>
+            <button type="button" className={language === "tr" ? "active" : ""} onClick={() => switchLanguage("tr")}>
+              TR
+            </button>
+          </div>
+        </div>
       </header>
 
       <section className="workspace">
         <aside className="queryPanel">
           <div className="panelTitle">
             <Network size={18} />
-            Research request
+            {String(t.panelTitle)}
           </div>
-          <h1>Ask a policy question and trace the evidence.</h1>
-          <p>
-            Search the report collection, inspect supporting passages, and turn findings
-            into a structured policy brief.
-          </p>
+          <h1>{String(t.headline)}</h1>
+          <p>{String(t.intro)}</p>
 
           <form className="questionBox" onSubmit={handleSubmit}>
-            <label htmlFor="research-question">Question</label>
+            <label htmlFor="research-question">{String(t.questionLabel)}</label>
             <textarea
               id="research-question"
               value={question}
               onChange={(event) => setQuestion(event.target.value)}
-              aria-label="Research question"
+              aria-label={String(t.questionLabel)}
             />
             <button type="submit" disabled={loading}>
-              {loading ? "Analyzing evidence" : "Run analysis"}
+              {loading ? String(t.analyzing) : String(t.run)}
               <ArrowRight size={18} />
             </button>
           </form>
@@ -210,36 +362,36 @@ function App() {
           <div className="metricStrip">
             <div>
               <strong>{documents.length}</strong>
-              <span>documents</span>
+              <span>{String(t.documents)}</span>
             </div>
             <div>
               <strong>{result.sources.length}</strong>
-              <span>sources</span>
+              <span>{String(t.sources)}</span>
             </div>
             <div>
-              <strong>{loading || uploading ? "Busy" : "Ready"}</strong>
-              <span>status</span>
+              <strong>{loading || uploading ? String(t.busy) : String(t.ready)}</strong>
+              <span>{String(t.status)}</span>
             </div>
           </div>
 
           <div className="uploadPanel">
             <div>
-              <strong>Add a report</strong>
+              <strong>{String(t.addReport)}</strong>
               <span>{uploadMessage}</span>
             </div>
             <label className={uploading ? "uploadButton disabled" : "uploadButton"}>
-              {uploading ? "Indexing" : "Upload PDF/TXT"}
+              {uploading ? String(t.indexing) : String(t.upload)}
               <input type="file" accept=".pdf,.txt" onChange={handleUpload} disabled={uploading} />
             </label>
           </div>
 
           <div className="documentsPanel">
             <div className="documentsHeader">
-              <strong>Indexed documents</strong>
-              <button type="button" onClick={refreshDocuments}>Refresh</button>
+              <strong>{String(t.indexedDocuments)}</strong>
+              <button type="button" onClick={refreshDocuments}>{String(t.refresh)}</button>
             </div>
             {documents.length === 0 ? (
-              <p>No indexed documents found yet.</p>
+              <p>{String(t.noDocuments)}</p>
             ) : (
               <div className="documentList">
                 {documents.map((document) => (
@@ -247,12 +399,10 @@ function App() {
                     type="button"
                     className="documentItem"
                     key={document.file_name}
-                    onClick={() =>
-                      setQuestion(`What are the main findings and recommendations in ${document.file_name}?`)
-                    }
+                    onClick={() => setQuestion(t.uploadedQuestion(document.file_name))}
                   >
                     <span>{document.title}</span>
-                    <small>{document.file_name} · {document.chunks} chunks · {document.source_type}</small>
+                    <small>{document.file_name} · {document.chunks} {String(t.chunk)} · {document.source_type}</small>
                   </button>
                 ))}
               </div>
@@ -262,26 +412,24 @@ function App() {
 
         <section className="analysisPanel">
           <div className="workflowRail" aria-label="Workflow">
-            {workflowSteps.map(({ step, description, Icon }, index) => (
-              <div
-                className={result.workflow_steps?.includes(step.toLowerCase()) ? "workflowStep complete" : "workflowStep"}
-                key={step}
-              >
-                <span>{index + 1}</span>
-                <div>
-                  <strong>{step}</strong>
-                  <p>{description}</p>
+            {(t.workflow as Array<{ step: string; description: string; key: string }>).map(({ step, description, key }, index) => {
+              const Icon = workflowIcons[key];
+              return (
+                <div className={result.workflow_steps?.includes(key) ? "workflowStep complete" : "workflowStep"} key={key}>
+                  <span>{index + 1}</span>
+                  <div>
+                    <strong>{step}</strong>
+                    <p>{description}</p>
+                  </div>
+                  <Icon size={18} />
                 </div>
-                <Icon size={18} />
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="stageBanner">
             <span>{currentStage}</span>
-            <p>
-              Uploading adds documents to the evidence index. Running analysis searches those indexed documents and returns the strongest source passages.
-            </p>
+            <p>{String(t.stageHelp)}</p>
           </div>
 
           <article className="resultPanel">
@@ -289,30 +437,25 @@ function App() {
               <div>
                 <div className="sectionLabel">
                   <Layers3 size={18} />
-                  Analysis result
+                  {String(t.result)}
                 </div>
                 <h2>{result.question}</h2>
               </div>
               <div className="qualityBadge">
                 <Sparkles size={16} />
-                Source-aware
+                {String(t.sourceAware)}
               </div>
             </div>
 
             <div className="tabs" role="tablist" aria-label="Analysis sections">
-              {[
-                ["answer", "Answer"],
-                ["brief", "Policy brief"],
-                ["sources", "Sources"],
-                ["validation", "Validation"],
-              ].map(([id, label]) => (
+              {(["answer", "brief", "sources", "validation"] as TabId[]).map((id) => (
                 <button
                   key={id}
                   type="button"
                   className={activeTab === id ? "active" : ""}
-                  onClick={() => setActiveTab(id as typeof activeTab)}
+                  onClick={() => setActiveTab(id)}
                 >
-                  {label}
+                  {t.tabs[id]}
                 </button>
               ))}
             </div>

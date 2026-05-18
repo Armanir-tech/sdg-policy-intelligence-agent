@@ -42,6 +42,13 @@ button {
   padding: 14px 0;
 }
 
+.topbarActions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
 .brand {
   display: flex;
   gap: 12px;
@@ -73,6 +80,31 @@ button {
   margin-top: 2px;
   color: #60716c;
   font-size: 12px;
+}
+
+.languageToggle {
+  display: inline-flex;
+  gap: 4px;
+  border: 1px solid rgba(18, 61, 53, 0.12);
+  border-radius: 999px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.languageToggle button {
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: #526861;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.languageToggle button.active {
+  color: #ffffff;
+  background: #123d35;
 }
 
 .navPills {
@@ -610,6 +642,11 @@ h1 {
   .topbar,
   .resultHeader {
     display: grid;
+  }
+
+  .topbarActions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 
   .navPills {
