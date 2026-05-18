@@ -7,3 +7,4 @@ pypdf==5.1.0
 chromadb==0.5.23
 python-multipart==0.0.20
 langgraph==0.2.60
+httpx==0.28.1

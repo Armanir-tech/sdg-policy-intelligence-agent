@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from typing import TypedDict
 
+import httpx
 from langgraph.graph import END, StateGraph
 
+from app.agents.llm_client import LLMUnavailable, generate_with_groq, has_llm
 from app.rag.vector_retriever import RetrievedChunk, retrieve_from_vector_store
 from app.schemas.research import ResearchResponse, Source
 
@@ -31,13 +33,36 @@ def analysis_node(state: PolicyState) -> PolicyState:
             )
         }
 
-    evidence = " ".join(chunk.text for chunk in chunks[:2])
+    evidence = "\n\n".join(
+        f"Source: {chunk.title} ({chunk.location})\n{chunk.text}" for chunk in chunks[:3]
+    )
+
+    if has_llm():
+        try:
+            answer = generate_with_groq(
+                system_prompt=(
+                    "You are a development policy research assistant. Answer only "
+                    "from the provided evidence. Be concise, analytical, and avoid "
+                    "unsupported claims."
+                ),
+                user_prompt=(
+                    f"Question:\n{state['question']}\n\n"
+                    f"Evidence:\n{evidence}\n\n"
+                    "Write an evidence-backed answer in 1-2 paragraphs."
+                ),
+                max_tokens=420,
+            )
+            return {"answer": answer}
+        except (LLMUnavailable, httpx.HTTPError, KeyError):
+            pass
+
+    joined_evidence = " ".join(chunk.text for chunk in chunks[:2])
     return {
         "answer": (
             "Based on the retrieved policy evidence, development impact depends on "
             "aligning interventions with measurable public outcomes, safeguards, and "
             "monitoring. "
-            + evidence[:520]
+            + joined_evidence[:520]
         )
     }
 
@@ -75,6 +100,30 @@ def brief_node(state: PolicyState) -> PolicyState:
         }
 
     strongest = chunks[0]
+
+    evidence = "\n\n".join(
+        f"Source: {chunk.title} ({chunk.location})\n{chunk.text}" for chunk in chunks[:3]
+    )
+
+    if has_llm():
+        try:
+            policy_brief = generate_with_groq(
+                system_prompt=(
+                    "You write short policy briefs for development policy audiences. "
+                    "Use only the supplied evidence and keep the structure clear."
+                ),
+                user_prompt=(
+                    f"Question:\n{state['question']}\n\n"
+                    f"Evidence:\n{evidence}\n\n"
+                    "Draft a brief with exactly these sections: Problem, Evidence, "
+                    "Recommendation. Keep it under 180 words."
+                ),
+                max_tokens=360,
+            )
+            return {"policy_brief": policy_brief}
+        except (LLMUnavailable, httpx.HTTPError, KeyError):
+            pass
+
     return {
         "policy_brief": (
             "Problem: Development policy goals often require financing, institutional "

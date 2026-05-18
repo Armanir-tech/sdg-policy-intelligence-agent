@@ -45,6 +45,7 @@ The project demonstrates:
 - Vector database usage with ChromaDB.
 - PDF/TXT document ingestion.
 - LangGraph-based agent workflow design.
+- Optional Groq LLM API support for generated answers and briefs.
 - Deployment on an Ubuntu server with systemd and nginx.
 
 ## Architecture
@@ -68,6 +69,7 @@ Backend:
 - ChromaDB
 - pypdf
 - LangGraph
+- Groq API optional
 - systemd
 
 Frontend:
@@ -157,16 +159,29 @@ Implemented:
 - ChromaDB vector retrieval
 - PDF/TXT upload
 - LangGraph workflow
+- optional Groq LLM generation
 - nginx deployment
 - systemd backend service
 
 Planned improvements:
 
 - OpenAI embeddings
-- stronger policy brief generation
 - evaluation metrics for citation coverage
 - better document management
 - user authentication for private deployments
+
+## Optional Free LLM API
+
+The app can run without any LLM API key by using template-based answer and brief
+generation. If `GROQ_API_KEY` is configured, the LangGraph workflow uses Groq's
+OpenAI-compatible API for the analysis and policy brief steps.
+
+Environment variables:
+
+```env
+GROQ_API_KEY=your_key_here
+GROQ_MODEL=llama-3.1-8b-instant
+```
 
 ## Learning Notes
 
@@ -179,4 +194,3 @@ This repository is intentionally documented as a learning project. See:
 ## Portfolio Summary
 
 Built an SDG Policy Intelligence Agent using Python, FastAPI, React, ChromaDB, and LangGraph to analyze development policy documents, retrieve evidence-backed answers, and generate structured policy briefs with citations and validation notes.
-

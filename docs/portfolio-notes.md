@@ -29,9 +29,8 @@ This structure makes it easier to explain what the agent is doing and where each
 ## Honest Current Limitations
 
 - The current MVP uses local deterministic embeddings instead of OpenAI embeddings.
-- The policy brief generation is template-based, not fully LLM-generated yet.
+- The app supports optional Groq LLM generation, but the demo can fall back to template-based generation if no API key is configured.
 - There is no authentication, so it should be treated as a demo deployment.
 - Uploaded document management is basic.
 
 These limitations are intentional for the first deployable version and can be improved in later versions.
-

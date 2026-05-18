@@ -83,6 +83,18 @@ PDF/TXT upload -> save file -> extract text -> chunk text -> embed chunks -> sto
 
 After that, new questions can retrieve evidence from the uploaded document.
 
+## How The Optional LLM Layer Works
+
+The app can run in two modes:
+
+```text
+No API key -> retrieval + template-based answer/brief
+Groq API key -> retrieval + LLM-generated answer/brief
+```
+
+This keeps the demo reliable. If the free API key is missing or fails, the app
+still works with the local fallback.
+
 ## Why This Fits The UNDP Internship
 
 The internship asks for Python, prompt engineering, agentic AI systems, RAG, vector databases, API work, and analytical writing.
