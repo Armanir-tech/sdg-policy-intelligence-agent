@@ -1,0 +1,10 @@
+Title: Digital Inclusion and Development Policy
+
+Digital inclusion is a core condition for equitable participation in modern economies. Connectivity, affordability, digital skills, and accessible public services affect whether households and small firms can benefit from digital transformation.
+
+Policy interventions should address both infrastructure and capability gaps. Expanding broadband coverage is not enough if users cannot afford devices, data, or training. Public-private partnerships can support infrastructure investment, but governments should protect competition, privacy, and access for underserved communities.
+
+AI systems used in public services should be evaluated for bias, robustness, and transparency. Development institutions should require documentation of data sources, model limitations, and monitoring plans. Human oversight remains important when AI tools influence access to public benefits or financial services.
+
+Source note: sample report created for the SDG Policy Intelligence Agent MVP.
+

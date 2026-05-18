@@ -1,0 +1,10 @@
+Title: SDG Financing and Private Sector Participation
+
+Private sector finance can help close sustainable development financing gaps when it is aligned with measurable development outcomes. Governments and development institutions often use blended finance, guarantees, concessional capital, and risk-sharing tools to attract private investment into sectors that would otherwise be considered too risky.
+
+However, private capital does not automatically create inclusive development impact. Strong governance, transparent project selection, and public-interest safeguards are needed. Policy makers should define clear impact indicators before mobilizing private capital. These indicators may include access for low-income communities, gender inclusion, affordability, job quality, and environmental sustainability.
+
+Blended finance can be useful when public resources reduce early-stage risk and crowd in additional capital. It should not replace public investment in essential services. It works best when the public role is to correct market failures, improve incentives, and monitor whether projects deliver measurable benefits.
+
+Source note: sample report created for the SDG Policy Intelligence Agent MVP.
+
