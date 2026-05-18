@@ -4,7 +4,13 @@ from uuid import uuid4
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from app.agents.policy_workflow import run_policy_workflow
-from app.rag.ingest import UPLOAD_DIR, ingest_sample_documents, ingest_uploaded_file, reset_collection
+from app.rag.ingest import (
+    UPLOAD_DIR,
+    ingest_sample_documents,
+    ingest_uploaded_file,
+    list_indexed_documents,
+    reset_collection,
+)
 from app.schemas.research import ResearchRequest, ResearchResponse
 
 router = APIRouter()
@@ -42,6 +48,11 @@ async def upload_document(file: UploadFile = File(...)) -> dict[str, int | str]:
     chunks = ingest_uploaded_file(destination)
 
     return {"status": "ok", "file_name": safe_name, "chunks": chunks}
+
+
+@router.get("/documents")
+def documents() -> dict[str, list[dict[str, str | int]]]:
+    return {"documents": list_indexed_documents()}
 
 
 @router.post("/research", response_model=ResearchResponse)

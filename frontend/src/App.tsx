@@ -10,7 +10,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { ChangeEvent, FormEvent, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles/app.css";
 
@@ -27,6 +27,13 @@ type ResearchResponse = {
   sources: Source[];
   validation_notes: string[];
   workflow_steps: string[];
+};
+
+type IndexedDocument = {
+  file_name: string;
+  title: string;
+  chunks: number;
+  source_type: string;
 };
 
 const exampleResponse: ResearchResponse = {
@@ -71,13 +78,35 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("Sample reports are already indexed.");
+  const [documents, setDocuments] = useState<IndexedDocument[]>([]);
+  const [currentStage, setCurrentStage] = useState("Ready");
   const [activeTab, setActiveTab] = useState<"answer" | "brief" | "sources" | "validation">("answer");
+
+  async function refreshDocuments() {
+    try {
+      const response = await fetch(`${apiBaseUrl}/documents`);
+      if (!response.ok) {
+        throw new Error("Failed to load documents");
+      }
+      const payload = await response.json();
+      setDocuments(payload.documents);
+    } catch {
+      setDocuments([]);
+    }
+  }
+
+  useEffect(() => {
+    refreshDocuments();
+  }, []);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setLoading(true);
+    setCurrentStage("Searching indexed documents");
 
     try {
+      await new Promise((resolve) => window.setTimeout(resolve, 250));
+      setCurrentStage("Retrieving evidence");
       const response = await fetch(`${apiBaseUrl}/research`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -88,9 +117,12 @@ function App() {
         throw new Error("Request failed");
       }
 
+      setCurrentStage("Writing answer and brief");
       setResult(await response.json());
+      setCurrentStage("Analysis complete");
     } catch {
       setResult({ ...exampleResponse, question });
+      setCurrentStage("Fallback response shown");
     } finally {
       setLoading(false);
     }
@@ -106,6 +138,7 @@ function App() {
     formData.append("file", file);
     setUploading(true);
     setUploadMessage(`Uploading ${file.name}`);
+    setCurrentStage("Indexing uploaded document");
 
     try {
       const response = await fetch(`${apiBaseUrl}/documents/upload`, {
@@ -119,8 +152,12 @@ function App() {
 
       const payload = await response.json();
       setUploadMessage(`${payload.file_name} indexed with ${payload.chunks} chunks.`);
+      await refreshDocuments();
+      setQuestion(`What are the main findings and recommendations in ${payload.file_name}?`);
+      setCurrentStage("Document indexed");
     } catch {
       setUploadMessage("Upload failed. Use a PDF or TXT file and try again.");
+      setCurrentStage("Upload failed");
     } finally {
       setUploading(false);
       event.target.value = "";
@@ -172,16 +209,16 @@ function App() {
 
           <div className="metricStrip">
             <div>
+              <strong>{documents.length}</strong>
+              <span>documents</span>
+            </div>
+            <div>
               <strong>{result.sources.length}</strong>
               <span>sources</span>
             </div>
             <div>
-              <strong>{result.validation_notes.length}</strong>
-              <span>checks</span>
-            </div>
-            <div>
-              <strong>MVP</strong>
-              <span>mode</span>
+              <strong>{loading || uploading ? "Busy" : "Ready"}</strong>
+              <span>status</span>
             </div>
           </div>
 
@@ -194,6 +231,32 @@ function App() {
               {uploading ? "Indexing" : "Upload PDF/TXT"}
               <input type="file" accept=".pdf,.txt" onChange={handleUpload} disabled={uploading} />
             </label>
+          </div>
+
+          <div className="documentsPanel">
+            <div className="documentsHeader">
+              <strong>Indexed documents</strong>
+              <button type="button" onClick={refreshDocuments}>Refresh</button>
+            </div>
+            {documents.length === 0 ? (
+              <p>No indexed documents found yet.</p>
+            ) : (
+              <div className="documentList">
+                {documents.map((document) => (
+                  <button
+                    type="button"
+                    className="documentItem"
+                    key={document.file_name}
+                    onClick={() =>
+                      setQuestion(`What are the main findings and recommendations in ${document.file_name}?`)
+                    }
+                  >
+                    <span>{document.title}</span>
+                    <small>{document.file_name} · {document.chunks} chunks · {document.source_type}</small>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </aside>
 
@@ -212,6 +275,13 @@ function App() {
                 <Icon size={18} />
               </div>
             ))}
+          </div>
+
+          <div className="stageBanner">
+            <span>{currentStage}</span>
+            <p>
+              Uploading adds documents to the evidence index. Running analysis searches those indexed documents and returns the strongest source passages.
+            </p>
           </div>
 
           <article className="resultPanel">

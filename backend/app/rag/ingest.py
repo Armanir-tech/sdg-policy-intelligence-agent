@@ -128,6 +128,33 @@ def ingest_uploaded_file(path: Path) -> int:
     return len(documents)
 
 
+def list_indexed_documents() -> list[dict[str, str | int]]:
+    collection = get_collection()
+    count = collection.count()
+    if count == 0:
+        return []
+
+    result = collection.get(include=["metadatas"], limit=count)
+    metadatas = result.get("metadatas", [])
+    grouped: dict[str, dict[str, str | int]] = {}
+
+    for metadata in metadatas:
+        file_name = str(metadata.get("file_name", "unknown"))
+        title = str(metadata.get("title", file_name))
+        current = grouped.setdefault(
+            file_name,
+            {
+                "file_name": file_name,
+                "title": title,
+                "chunks": 0,
+                "source_type": "uploaded" if file_name not in {"sdg_financing.txt", "digital_inclusion.txt"} else "sample",
+            },
+        )
+        current["chunks"] = int(current["chunks"]) + 1
+
+    return sorted(grouped.values(), key=lambda item: str(item["file_name"]))
+
+
 def reset_collection() -> int:
     client = chromadb.PersistentClient(path=settings.chroma_dir)
     try:
