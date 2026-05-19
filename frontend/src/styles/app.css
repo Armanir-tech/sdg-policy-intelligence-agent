@@ -1607,6 +1607,14 @@ h1 {
 }
 
 @media (max-width: 980px) {
+  html,
+  body,
+  #root,
+  .shell {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
   .topbar {
     display: grid;
     align-items: flex-start;
@@ -1631,6 +1639,33 @@ h1 {
 
   .guideStep::after {
     display: none;
+  }
+
+  .workspace,
+  .workflowRail,
+  .signalGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workspace,
+  .analysisPanel,
+  .queryPanel,
+  .resultPanel,
+  .workflowRail,
+  .signalGrid {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .workflowStep {
+    grid-template-columns: auto 1fr auto;
+    min-width: 0;
+  }
+
+  .workflowStep p,
+  .signalCard small,
+  .signalCard strong {
+    overflow-wrap: anywhere;
   }
 }
 
@@ -1706,7 +1741,23 @@ h1 {
   }
 
   .workflowStep {
+    grid-template-columns: auto 1fr;
     min-height: auto;
+    padding: 12px;
+  }
+
+  .workflowStep svg {
+    grid-column: 2;
+    justify-self: end;
+    margin-top: -28px;
+  }
+
+  .signalCard {
+    padding: 12px;
+  }
+
+  .signalCard strong {
+    font-size: 20px;
   }
 
   .guideStep::after {
