@@ -32,6 +32,16 @@ def read_pdf(path: Path) -> str:
     return "\n\n".join(pages)
 
 
+def read_pdf_pages(path: Path) -> list[tuple[int, str]]:
+    reader = PdfReader(str(path))
+    pages: list[tuple[int, str]] = []
+    for index, page in enumerate(reader.pages, start=1):
+        text = page.extract_text() or ""
+        if text.strip():
+            pages.append((index, text.strip()))
+    return pages
+
+
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
@@ -54,6 +64,18 @@ def chunk_text(text: str, max_chars: int = 760, overlap: int = 120) -> list[str]
     return chunks
 
 
+def chunk_document(path: Path) -> list[tuple[str, int | None]]:
+    if path.suffix.lower() == ".pdf":
+        chunks: list[tuple[str, int | None]] = []
+        for page_number, page_text in read_pdf_pages(path):
+            for chunk in chunk_text(page_text):
+                chunks.append((chunk, page_number))
+        return chunks
+    if path.suffix.lower() == ".txt":
+        return [(chunk, None) for chunk in chunk_text(read_text(path))]
+    raise ValueError("Only PDF and TXT files are supported.")
+
+
 def get_collection():
     client = chromadb.PersistentClient(path=settings.chroma_dir)
     return client.get_or_create_collection(
@@ -74,12 +96,9 @@ def ingest_sample_documents() -> int:
     metadatas: list[dict[str, str | int]] = []
 
     for path in sorted(DATA_DIR.glob("*")):
-        if path.suffix.lower() == ".pdf":
-            text = read_pdf(path)
-        elif path.suffix.lower() == ".txt":
-            text = read_text(path)
-        else:
+        if path.suffix.lower() not in {".pdf", ".txt"}:
             continue
+        text = read_pdf(path) if path.suffix.lower() == ".pdf" else read_text(path)
 
         title = path.stem.replace("_", " ").title()
         for line in text.splitlines():
@@ -87,15 +106,17 @@ def ingest_sample_documents() -> int:
                 title = line.replace("Title:", "", 1).strip()
                 break
 
-        for index, chunk in enumerate(chunk_text(text), start=1):
+        for index, (chunk, page_number) in enumerate(chunk_document(path), start=1):
             ids.append(f"{path.stem}-{index}-{uuid4().hex[:8]}")
             documents.append(chunk)
+            location = f"{path.name} page {page_number}" if page_number else f"{path.name} chunk {index}"
             metadatas.append(
                 {
                     "title": title,
-                    "location": f"{path.name} chunk {index}",
+                    "location": location,
                     "file_name": path.name,
                     "source_type": "sample",
+                    "page_number": page_number or "",
                 }
             )
 
@@ -108,11 +129,7 @@ def ingest_sample_documents() -> int:
 def ingest_uploaded_file(path: Path, client_id: str | None = None) -> int:
     collection = get_collection()
 
-    if path.suffix.lower() == ".pdf":
-        text = read_pdf(path)
-    elif path.suffix.lower() == ".txt":
-        text = read_text(path)
-    else:
+    if path.suffix.lower() not in {".pdf", ".txt"}:
         raise ValueError("Only PDF and TXT files are supported.")
 
     title = path.stem.replace("_", " ").title()
@@ -120,16 +137,18 @@ def ingest_uploaded_file(path: Path, client_id: str | None = None) -> int:
     ids: list[str] = []
     metadatas: list[dict[str, str | int]] = []
 
-    for index, chunk in enumerate(chunk_text(text), start=1):
+    for index, (chunk, page_number) in enumerate(chunk_document(path), start=1):
         ids.append(f"upload-{path.stem}-{index}-{uuid4().hex[:8]}")
         documents.append(chunk)
+        location = f"uploaded source page {page_number}" if page_number else f"uploaded source chunk {index}"
         metadatas.append(
             {
                 "title": "Uploaded document",
-                "location": f"uploaded source chunk {index}",
+                "location": location,
                 "file_name": path.name,
                 "source_type": "uploaded",
                 "client_id": client_id or "",
+                "page_number": page_number or "",
             }
         )
 

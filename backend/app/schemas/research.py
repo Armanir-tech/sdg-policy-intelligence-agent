@@ -13,6 +13,8 @@ class Source(BaseModel):
     location: str
     excerpt: str
     source_type: str = "sample"
+    page_number: int | None = None
+    confidence: str = "retrieved"
 
 
 class ResearchResponse(BaseModel):

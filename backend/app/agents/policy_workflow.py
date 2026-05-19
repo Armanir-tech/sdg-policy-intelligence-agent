@@ -249,6 +249,8 @@ def run_policy_workflow(
                     else "A matching passage was found in an uploaded document. The full excerpt is hidden in the public demo."
                 ),
                 source_type=chunk.source_type,
+                page_number=chunk.page_number,
+                confidence="high" if chunk.distance < 0.85 else "medium",
             )
             for chunk in chunks
         ],

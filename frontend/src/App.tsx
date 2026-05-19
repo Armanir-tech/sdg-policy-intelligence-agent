@@ -2,12 +2,16 @@ import {
   ArrowRight,
   BookOpenText,
   CheckCircle2,
+  Clipboard,
+  Download,
   FileSearch,
+  FileText,
   Layers3,
   LineChart,
   Network,
   ShieldCheck,
   Sparkles,
+  WandSparkles,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
@@ -22,6 +26,9 @@ type Source = {
   title: string;
   location: string;
   excerpt: string;
+  source_type: string;
+  page_number?: number | null;
+  confidence?: string;
 };
 
 type ResearchResponse = {
@@ -98,6 +105,29 @@ const copy = {
     stageUploadFailed: "Upload failed",
     stageHelp:
       "Uploading adds documents to the evidence index. Running analysis searches those indexed documents and returns the strongest source passages.",
+    modeTitle: "Workspace mode",
+    modePublic: "Public demo",
+    modePrivate: "Private workspace",
+    modeHelp: "Private mode keeps uploaded reports scoped to this browser session.",
+    quickActions: "Quick actions",
+    quickHelp: "Use these after uploading a report or when you want a faster start.",
+    uploadActions: [
+      "Summarize this report",
+      "Extract implementation risks",
+      "Create a 150-word policy brief",
+      "Find SDG relevance",
+    ],
+    samplePrompts: [
+      "How can AI support inclusive public services?",
+      "What are the risks of blended finance?",
+      "Summarize this report for a UNDP policy officer.",
+      "Create a 150-word policy brief with recommendations.",
+    ],
+    exportBrief: "Download brief",
+    copyBrief: "Copy brief",
+    copied: "Copied",
+    sourcePage: "page",
+    confidence: "confidence",
     result: "Analysis result",
     sourceAware: "Source-aware",
     tabs: {
@@ -173,6 +203,29 @@ const copy = {
     stageUploadFailed: "Yükleme başarısız",
     stageHelp:
       "Yükleme, belgeleri kanıt indeksine ekler. Analiz çalışınca sistem bu belgelerde arama yapar ve en güçlü kaynak pasajlarını döndürür.",
+    modeTitle: "Çalışma modu",
+    modePublic: "Public demo",
+    modePrivate: "Özel çalışma alanı",
+    modeHelp: "Özel mod, yüklenen raporları bu tarayıcı oturumuyla sınırlar.",
+    quickActions: "Hızlı aksiyonlar",
+    quickHelp: "Rapor yükledikten sonra veya hızlı başlamak istediğinde bunları kullan.",
+    uploadActions: [
+      "Bu raporu özetle",
+      "Uygulama risklerini çıkar",
+      "150 kelimelik politika notu hazırla",
+      "SKA bağlantısını bul",
+    ],
+    samplePrompts: [
+      "Yapay zeka kapsayıcı kamu hizmetlerini nasıl destekleyebilir?",
+      "Karma finansmanın riskleri nelerdir?",
+      "Bu raporu bir UNDP politika uzmanı için özetle.",
+      "Öneriler içeren 150 kelimelik politika notu hazırla.",
+    ],
+    exportBrief: "Brief indir",
+    copyBrief: "Brief kopyala",
+    copied: "Kopyalandı",
+    sourcePage: "sayfa",
+    confidence: "güven",
     result: "Analiz sonucu",
     sourceAware: "Kaynaklı",
     tabs: {
@@ -206,11 +259,17 @@ const exampleResponses: Record<Language, ResearchResponse> = {
         title: "Sample development policy report",
         location: "Page 12",
         excerpt: "Blended finance can mobilize private capital when risk-sharing mechanisms are transparent.",
+        source_type: "sample",
+        page_number: 12,
+        confidence: "high",
       },
       {
         title: "Sample SDG financing note",
         location: "Page 4",
         excerpt: "Impact measurement is essential for aligning private investment with development outcomes.",
+        source_type: "sample",
+        page_number: 4,
+        confidence: "high",
       },
     ],
     validation_notes: ["2 supporting sources found", "Policy brief includes problem, evidence, and recommendation sections"],
@@ -228,11 +287,17 @@ const exampleResponses: Record<Language, ResearchResponse> = {
         title: "Örnek kalkınma politikası raporu",
         location: "Sayfa 12",
         excerpt: "Risk paylaşımı mekanizmaları şeffaf olduğunda karma finansman özel sermayeyi harekete geçirebilir.",
+        source_type: "sample",
+        page_number: 12,
+        confidence: "high",
       },
       {
         title: "Örnek SKA finansmanı notu",
         location: "Sayfa 4",
         excerpt: "Etki ölçümü, özel yatırımın kalkınma sonuçlarıyla uyumlu olması için gereklidir.",
+        source_type: "sample",
+        page_number: 4,
+        confidence: "high",
       },
     ],
     validation_notes: ["2 destekleyici kaynak bulundu", "Politika notu problem, kanıt ve öneri bölümlerini içeriyor"],
@@ -277,6 +342,48 @@ function App() {
   const [currentStage, setCurrentStage] = useState(copy.en.stageReady);
   const [activeTab, setActiveTab] = useState<TabId>("answer");
   const [clientId] = useState(getClientId);
+  const [privateMode, setPrivateMode] = useState(true);
+  const [copied, setCopied] = useState(false);
+
+  const activeWorkflowKeys = loading
+    ? currentStage === t.stageSearching
+      ? ["research"]
+      : currentStage === t.stageRetrieving
+        ? ["research", "analysis"]
+        : ["research", "analysis", "validation"]
+    : result.workflow_steps || [];
+
+  function usePrompt(prompt: string) {
+    setQuestion(prompt);
+    setCurrentStage(String(t.stageReady));
+  }
+
+  function resultAsMarkdown() {
+    const sourceLines = result.sources
+      .map((source, index) => {
+        const page = source.page_number ? `, ${String(t.sourcePage)} ${source.page_number}` : "";
+        return `${index + 1}. ${source.title} (${source.location}${page})`;
+      })
+      .join("\n");
+
+    return `# ${result.question}\n\n## Answer\n${result.answer}\n\n## Policy brief\n${result.policy_brief}\n\n## Sources\n${sourceLines}`;
+  }
+
+  async function copyBrief() {
+    await navigator.clipboard.writeText(resultAsMarkdown());
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1400);
+  }
+
+  function downloadBrief() {
+    const blob = new Blob([resultAsMarkdown()], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "sdg-policy-brief.md";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
 
   function switchLanguage(nextLanguage: Language) {
     setLanguage(nextLanguage);
@@ -437,6 +544,23 @@ function App() {
             </button>
           </form>
 
+          <div className="promptDeck">
+            <div className="promptDeckHeader">
+              <WandSparkles size={17} />
+              <div>
+                <strong>{String(t.quickActions)}</strong>
+                <span>{String(t.quickHelp)}</span>
+              </div>
+            </div>
+            <div className="promptGrid">
+              {(t.samplePrompts as string[]).map((prompt) => (
+                <button type="button" key={prompt} onClick={() => usePrompt(prompt)}>
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="providerPanel">
             <div>
               <strong>{String(t.providerLabel)}</strong>
@@ -449,6 +573,21 @@ function App() {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div className="modePanel">
+            <div>
+              <strong>{String(t.modeTitle)}</strong>
+              <span>{String(t.modeHelp)}</span>
+            </div>
+            <div className="modeToggle" aria-label={String(t.modeTitle)}>
+              <button type="button" className={!privateMode ? "active" : ""} onClick={() => setPrivateMode(false)}>
+                {String(t.modePublic)}
+              </button>
+              <button type="button" className={privateMode ? "active" : ""} onClick={() => setPrivateMode(true)}>
+                {String(t.modePrivate)}
+              </button>
+            </div>
           </div>
 
           <div className="metricStrip">
@@ -475,6 +614,13 @@ function App() {
               {uploading ? String(t.indexing) : String(t.upload)}
               <input type="file" accept=".pdf,.txt" onChange={handleUpload} disabled={uploading} />
             </label>
+            <div className="uploadActions">
+              {(t.uploadActions as string[]).map((action) => (
+                <button type="button" key={action} onClick={() => usePrompt(action)}>
+                  {action}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="documentsPanel">
@@ -509,8 +655,9 @@ function App() {
           <div className="workflowRail" aria-label="Workflow">
             {(t.workflow as Array<{ step: string; description: string; key: string }>).map(({ step, description, key }, index) => {
               const Icon = workflowIcons[key];
+              const stepState = activeWorkflowKeys.includes(key) ? "complete" : loading ? "pending" : "";
               return (
-                <div className={result.workflow_steps?.includes(key) ? "workflowStep complete" : "workflowStep"} key={key}>
+                <div className={`workflowStep ${stepState}`} key={key}>
                   <span>{index + 1}</span>
                   <div>
                     <strong>{step}</strong>
@@ -561,6 +708,17 @@ function App() {
               </div>
             </div>
 
+            <div className="resultActions">
+              <button type="button" onClick={copyBrief}>
+                <Clipboard size={16} />
+                {copied ? String(t.copied) : String(t.copyBrief)}
+              </button>
+              <button type="button" onClick={downloadBrief}>
+                <Download size={16} />
+                {String(t.exportBrief)}
+              </button>
+            </div>
+
             <div className="tabs" role="tablist" aria-label="Analysis sections">
               {(["answer", "brief", "sources", "validation"] as TabId[]).map((id) => (
                 <button
@@ -597,7 +755,12 @@ function App() {
                         <strong>{source.title}</strong>
                         <span>#{index + 1}</span>
                       </div>
-                      <small>{source.location}</small>
+                      <small>
+                        <FileText size={13} />
+                        {source.location}
+                        {source.page_number ? ` · ${String(t.sourcePage)} ${source.page_number}` : ""}
+                        {source.confidence ? ` · ${String(t.confidence)}: ${source.confidence}` : ""}
+                      </small>
                       <p>{source.excerpt}</p>
                     </div>
                   ))}

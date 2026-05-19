@@ -12,6 +12,7 @@ class RetrievedChunk:
     text: str
     distance: float
     source_type: str
+    page_number: int | None
 
 
 def retrieve_from_vector_store(question: str, limit: int = 4, client_id: str | None = None) -> list[RetrievedChunk]:
@@ -37,6 +38,7 @@ def retrieve_from_vector_store(question: str, limit: int = 4, client_id: str | N
                 text=document,
                 distance=float(distance),
                 source_type=source_type,
+                page_number=int(metadata["page_number"]) if metadata.get("page_number") else None,
             )
         )
         if len(chunks) >= limit:

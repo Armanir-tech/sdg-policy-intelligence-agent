@@ -301,6 +301,80 @@ h1 {
   transform: none;
 }
 
+.promptDeck,
+.modePanel {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+  border: 1px solid rgba(18, 61, 53, 0.1);
+  border-radius: 8px;
+  padding: 14px;
+  background: #fbfcfa;
+}
+
+.promptDeckHeader {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.promptDeckHeader svg {
+  color: #b66f25;
+  flex: 0 0 auto;
+}
+
+.promptDeckHeader strong,
+.promptDeckHeader span,
+.modePanel strong,
+.modePanel span {
+  display: block;
+}
+
+.promptDeckHeader strong,
+.modePanel strong {
+  color: #17362f;
+  font-size: 14px;
+}
+
+.promptDeckHeader span,
+.modePanel span {
+  margin-top: 4px;
+  color: #697b75;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.promptGrid,
+.uploadActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.promptGrid button,
+.uploadActions button,
+.resultActions button {
+  border: 1px solid rgba(18, 61, 53, 0.11);
+  border-radius: 8px;
+  padding: 10px 11px;
+  color: #244a42;
+  background: #ffffff;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+  transition: border 160ms ease, transform 160ms ease, background 160ms ease;
+}
+
+.promptGrid button:hover,
+.uploadActions button:hover,
+.resultActions button:hover {
+  border-color: rgba(20, 103, 84, 0.32);
+  background: #f3faf7;
+  transform: translateY(-1px);
+}
+
 .providerPanel {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 150px;
@@ -340,6 +414,36 @@ h1 {
   font-size: 13px;
   font-weight: 900;
   outline: none;
+}
+
+.modePanel {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.modeToggle {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  border: 1px solid rgba(18, 61, 53, 0.1);
+  border-radius: 8px;
+  padding: 4px;
+  background: #eef3f0;
+}
+
+.modeToggle button {
+  border: 0;
+  border-radius: 6px;
+  padding: 9px 8px;
+  color: #526861;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.modeToggle button.active {
+  color: #ffffff;
+  background: #123d35;
 }
 
 .metricStrip {
@@ -422,6 +526,10 @@ h1 {
 
 .uploadButton input {
   display: none;
+}
+
+.uploadActions {
+  grid-template-columns: 1fr;
 }
 
 .documentsPanel {
@@ -571,6 +679,10 @@ h1 {
   background: #f3faf7;
 }
 
+.workflowStep.pending {
+  opacity: 0.58;
+}
+
 .stageBanner {
   position: relative;
   overflow: hidden;
@@ -664,6 +776,20 @@ h1 {
   gap: 16px;
   align-items: flex-start;
   margin-bottom: 18px;
+}
+
+.resultActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -6px 0 16px;
+}
+
+.resultActions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  text-align: center;
 }
 
 .resultHeader h2 {
@@ -774,7 +900,10 @@ h1 {
 }
 
 .sourceCard small {
-  display: block;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
   margin-top: 5px;
   color: #8a5218;
   font-weight: 900;
