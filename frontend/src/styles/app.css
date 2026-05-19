@@ -1608,11 +1608,29 @@ h1 {
 
 @media (max-width: 980px) {
   .topbar {
+    display: grid;
     align-items: flex-start;
+  }
+
+  .topbarActions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .navPills {
+    justify-content: flex-start;
   }
 
   h1 {
     max-width: 18ch;
+  }
+
+  .guideSteps {
+    grid-template-columns: 1fr;
+  }
+
+  .guideStep::after {
+    display: none;
   }
 }
 
@@ -1623,6 +1641,7 @@ h1 {
 
   .topbar {
     padding: 12px;
+    gap: 12px;
   }
 
   .brand {
@@ -1641,11 +1660,17 @@ h1 {
   }
 
   .agentConsole {
+    gap: 10px;
     padding: 14px;
   }
 
   .guideHero {
+    gap: 12px;
     padding: 14px;
+  }
+
+  .guideHero > div:first-child strong {
+    font-size: 17px;
   }
 
   h1 {
@@ -1661,19 +1686,43 @@ h1 {
     grid-template-columns: 1fr;
   }
 
+  .providerPanel {
+    grid-template-columns: 1fr;
+  }
+
+  .uploadPanelHeader,
+  .documentsHeader,
+  .sourceTopline {
+    display: grid;
+    align-items: start;
+  }
+
+  .uploadStatus {
+    width: fit-content;
+  }
+
+  .documentList {
+    max-height: 190px;
+  }
+
+  .workflowStep {
+    min-height: auto;
+  }
+
   .guideStep::after {
     display: none;
   }
 
   .questionBox button,
   .uploadButton,
+  .documentsHeader button,
   .resultActions button {
     width: 100%;
     justify-content: center;
   }
 
   .tabs button {
-    flex-basis: calc(50% - 4px);
+    flex-basis: 100%;
   }
 
   .tabContent {
