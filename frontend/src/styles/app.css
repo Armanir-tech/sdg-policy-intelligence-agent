@@ -992,3 +992,526 @@ h1 {
     grid-template-columns: 1fr;
   }
 }
+
+/* Final visual polish layer */
+:root {
+  --ink: #14211f;
+  --ink-soft: #263c37;
+  --muted: #657873;
+  --line: rgba(25, 55, 50, 0.13);
+  --line-strong: rgba(25, 55, 50, 0.2);
+  --canvas: #f3f6f4;
+  --surface: rgba(255, 255, 255, 0.92);
+  --surface-solid: #ffffff;
+  --surface-soft: #f8faf8;
+  --teal: #116f5d;
+  --teal-strong: #0b584a;
+  --teal-soft: #e9f6f1;
+  --amber: #c97825;
+  --amber-soft: #fff2dd;
+  --blue: #2a7286;
+  --blue-soft: #e9f4f7;
+  --shadow: 0 18px 50px rgba(21, 45, 41, 0.12);
+  --shadow-soft: 0 8px 24px rgba(21, 45, 41, 0.08);
+}
+
+body {
+  color: var(--ink);
+  background: var(--canvas);
+  line-height: 1.5;
+}
+
+button,
+select,
+textarea {
+  font: inherit;
+}
+
+button:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(42, 114, 134, 0.25);
+  outline-offset: 2px;
+}
+
+.shell {
+  padding: 22px;
+  background:
+    linear-gradient(135deg, rgba(243, 246, 244, 0.98), rgba(250, 249, 245, 0.96)),
+    linear-gradient(115deg, rgba(17, 111, 93, 0.06) 0 18%, transparent 18% 100%),
+    linear-gradient(90deg, rgba(42, 114, 134, 0.045) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(25, 55, 50, 0.035) 1px, transparent 1px);
+  background-size: auto, auto, 48px 48px, 48px 48px;
+}
+
+.topbar {
+  max-width: 1280px;
+  margin-bottom: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(18px);
+}
+
+.brand {
+  min-width: 240px;
+}
+
+.brandMark {
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background:
+    linear-gradient(135deg, #0d4f46 0 62%, #d08a2f 62% 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.brand strong {
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.brand small {
+  color: var(--muted);
+}
+
+.navPills span {
+  border-color: rgba(42, 114, 134, 0.17);
+  color: #245666;
+  background: var(--blue-soft);
+}
+
+.languageToggle {
+  border-color: var(--line);
+  background: var(--surface-solid);
+}
+
+.languageToggle button.active,
+.modeToggle button.active {
+  background: var(--ink);
+}
+
+.workspace {
+  grid-template-columns: minmax(340px, 0.78fr) minmax(0, 1.22fr);
+  gap: 20px;
+  max-width: 1280px;
+}
+
+.agentConsole {
+  max-width: 1280px;
+  gap: 18px;
+  border-color: rgba(17, 111, 93, 0.22);
+  padding: 15px 18px;
+  background:
+    linear-gradient(90deg, rgba(20, 33, 31, 0.98), rgba(17, 111, 93, 0.94)),
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.09) 0 1px, transparent 1px 14px);
+  box-shadow: 0 20px 46px rgba(20, 33, 31, 0.18);
+}
+
+.agentConsole strong {
+  font-size: 13px;
+}
+
+.consoleSignals i {
+  background: #f2b857;
+  box-shadow: 0 0 0 5px rgba(242, 184, 87, 0.12);
+}
+
+.queryPanel,
+.analysisPanel,
+.resultPanel {
+  border-color: var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.queryPanel {
+  padding: 26px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(250, 252, 250, 0.92));
+}
+
+.analysisPanel {
+  gap: 16px;
+  padding: 16px;
+  align-content: start;
+}
+
+.panelTitle,
+.sectionLabel {
+  color: var(--teal);
+}
+
+h1 {
+  max-width: 12ch;
+  color: var(--ink);
+  font-size: 40px;
+  line-height: 1.04;
+}
+
+.queryPanel > p {
+  color: var(--muted);
+  max-width: 60ch;
+}
+
+.questionBox textarea {
+  min-height: 142px;
+  border-color: var(--line-strong);
+  color: var(--ink);
+  background: var(--surface-solid);
+  box-shadow: inset 0 1px 0 rgba(20, 33, 31, 0.03);
+}
+
+.questionBox textarea:focus {
+  border-color: rgba(42, 114, 134, 0.55);
+  box-shadow: 0 0 0 4px rgba(42, 114, 134, 0.12);
+}
+
+.questionBox button {
+  min-height: 46px;
+  background: var(--teal);
+  box-shadow: 0 10px 20px rgba(17, 111, 93, 0.18);
+}
+
+.questionBox button:hover {
+  background: var(--teal-strong);
+}
+
+.promptDeck,
+.modePanel,
+.providerPanel,
+.uploadPanel,
+.documentsPanel {
+  border-color: var(--line);
+  background: var(--surface-soft);
+}
+
+.promptDeckHeader svg {
+  color: var(--amber);
+}
+
+.promptDeckHeader strong,
+.modePanel strong,
+.providerPanel strong,
+.uploadPanel strong,
+.documentsHeader strong {
+  color: var(--ink);
+}
+
+.promptDeckHeader span,
+.modePanel span,
+.providerPanel span,
+.uploadPanel span,
+.documentsHeader span,
+.documentsPanel > p {
+  color: var(--muted);
+}
+
+.promptGrid button,
+.uploadActions button,
+.documentItem,
+.resultActions button {
+  border-color: var(--line);
+  color: var(--ink-soft);
+  background: var(--surface-solid);
+}
+
+.promptGrid button,
+.uploadActions button {
+  min-height: 48px;
+}
+
+.promptGrid button:hover,
+.uploadActions button:hover,
+.documentItem:hover,
+.resultActions button:hover {
+  border-color: rgba(17, 111, 93, 0.34);
+  background: var(--teal-soft);
+}
+
+.providerPanel select {
+  border-color: var(--line-strong);
+  color: var(--ink);
+  background: var(--surface-solid);
+}
+
+.modeToggle {
+  border-color: var(--line);
+  background: #edf2ef;
+}
+
+.modeToggle button {
+  min-height: 36px;
+}
+
+.metricStrip {
+  margin-top: 22px;
+}
+
+.metricStrip div,
+.signalCard {
+  border-color: var(--line);
+  background:
+    linear-gradient(180deg, var(--surface-solid), #f7faf8);
+}
+
+.metricStrip div:nth-child(1),
+.signalCard:nth-child(1) {
+  border-top: 3px solid var(--teal);
+}
+
+.metricStrip div:nth-child(2),
+.signalCard:nth-child(2) {
+  border-top: 3px solid var(--blue);
+}
+
+.metricStrip div:nth-child(3),
+.signalCard:nth-child(3) {
+  border-top: 3px solid var(--amber);
+}
+
+.metricStrip strong,
+.signalCard strong {
+  color: var(--ink);
+}
+
+.metricStrip span,
+.signalCard small {
+  color: var(--muted);
+}
+
+.uploadButton,
+.documentsHeader button {
+  border-color: rgba(17, 111, 93, 0.26);
+  color: var(--teal-strong);
+  background: var(--teal-soft);
+}
+
+.uploadButton:hover,
+.documentsHeader button:hover {
+  background: #dff1ea;
+}
+
+.documentList {
+  max-height: 250px;
+  padding-right: 2px;
+}
+
+.documentItem {
+  min-height: 58px;
+}
+
+.documentItem span {
+  color: var(--ink);
+}
+
+.documentItem small {
+  color: var(--muted);
+}
+
+.workflowRail {
+  gap: 9px;
+}
+
+.workflowStep {
+  border-color: var(--line);
+  background: var(--surface-solid);
+  box-shadow: 0 5px 14px rgba(21, 45, 41, 0.05);
+  min-height: 94px;
+}
+
+.workflowStep span {
+  background: var(--amber);
+}
+
+.workflowStep svg {
+  color: var(--blue);
+}
+
+.workflowStep.complete {
+  border-color: rgba(17, 111, 93, 0.32);
+  background:
+    linear-gradient(180deg, #ffffff, var(--teal-soft));
+}
+
+.workflowStep.complete span {
+  background: var(--teal);
+}
+
+.workflowStep.pending {
+  opacity: 0.66;
+}
+
+.stageBanner {
+  border-color: rgba(201, 120, 37, 0.26);
+  background:
+    linear-gradient(90deg, var(--amber-soft), #fffaf2);
+}
+
+.stageBanner span {
+  color: #8a4c13;
+}
+
+.stageBanner p {
+  color: #705a3f;
+}
+
+.activityLine {
+  background: linear-gradient(90deg, transparent, var(--amber), var(--teal), transparent);
+}
+
+.signalCard span {
+  color: var(--teal);
+}
+
+.resultPanel {
+  padding: 24px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 252, 250, 0.94));
+}
+
+.resultHeader {
+  align-items: center;
+}
+
+.resultHeader h2 {
+  color: var(--ink);
+  font-size: 25px;
+}
+
+.qualityBadge {
+  color: #8a4c13;
+  background: var(--amber-soft);
+}
+
+.resultActions {
+  margin-top: -4px;
+}
+
+.resultActions button {
+  background: #f8fbfa;
+}
+
+.tabs {
+  gap: 4px;
+  border-bottom: 0;
+  border-radius: 8px;
+  padding: 5px;
+  background: #edf2ef;
+}
+
+.tabs button {
+  flex: 1 1 auto;
+  min-height: 40px;
+  border: 0;
+  border-radius: 6px;
+  padding: 9px 10px;
+  color: var(--muted);
+}
+
+.tabs button.active {
+  color: var(--ink);
+  background: var(--surface-solid);
+  box-shadow: 0 3px 10px rgba(21, 45, 41, 0.08);
+}
+
+.answerBlock {
+  border-left-color: var(--teal);
+}
+
+.answerBlock p,
+.briefBlock p,
+.sourceCard p {
+  color: #3e5550;
+}
+
+.briefBlock p,
+.sourceCard,
+.checkList li {
+  border-color: var(--line);
+  background: var(--surface-soft);
+}
+
+.sourceTopline strong {
+  color: var(--ink);
+}
+
+.sourceTopline span {
+  background: var(--ink);
+}
+
+.sourceCard small {
+  color: #8a4c13;
+}
+
+.checkList svg {
+  color: var(--teal);
+}
+
+@media (max-width: 980px) {
+  .topbar {
+    align-items: flex-start;
+  }
+
+  h1 {
+    max-width: 18ch;
+  }
+}
+
+@media (max-width: 680px) {
+  .shell {
+    padding: 12px;
+  }
+
+  .topbar {
+    padding: 12px;
+  }
+
+  .brand {
+    min-width: 0;
+  }
+
+  .brandMark {
+    width: 40px;
+    height: 40px;
+  }
+
+  .queryPanel,
+  .analysisPanel,
+  .resultPanel {
+    padding: 16px;
+  }
+
+  .agentConsole {
+    padding: 14px;
+  }
+
+  h1 {
+    max-width: none;
+    font-size: 30px;
+    line-height: 1.08;
+  }
+
+  .promptGrid,
+  .metricStrip,
+  .signalGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .questionBox button,
+  .uploadButton,
+  .resultActions button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .tabs button {
+    flex-basis: calc(50% - 4px);
+  }
+
+  .tabContent {
+    min-height: 260px;
+  }
+}
