@@ -16,6 +16,7 @@ import "./styles/app.css";
 
 type Language = "en" | "tr";
 type TabId = "answer" | "brief" | "sources" | "validation";
+type Provider = "auto" | "groq" | "gemini" | "openrouter";
 
 type Source = {
   title: string;
@@ -30,6 +31,7 @@ type ResearchResponse = {
   sources: Source[];
   validation_notes: string[];
   workflow_steps: string[];
+  provider_used: string;
 };
 
 type IndexedDocument = {
@@ -56,6 +58,15 @@ const copy = {
     ready: "Ready",
     busy: "Busy",
     addReport: "Add a report",
+    providerLabel: "AI provider",
+    providerHelp: "Auto tries configured providers in order and falls back safely.",
+    providers: {
+      auto: "Auto",
+      groq: "Groq",
+      gemini: "Gemini",
+      openrouter: "OpenRouter",
+    },
+    providerUsed: "provider",
     sampleIndexed: "Sample reports are already indexed.",
     upload: "Upload PDF/TXT",
     uploading: "Uploading",
@@ -111,6 +122,15 @@ const copy = {
     ready: "Hazır",
     busy: "Çalışıyor",
     addReport: "Rapor ekle",
+    providerLabel: "AI sağlayıcı",
+    providerHelp: "Otomatik seçenek ayarlı sağlayıcıları sırayla dener ve gerekirse güvenli yedeğe döner.",
+    providers: {
+      auto: "Otomatik",
+      groq: "Groq",
+      gemini: "Gemini",
+      openrouter: "OpenRouter",
+    },
+    providerUsed: "sağlayıcı",
     sampleIndexed: "Örnek raporlar zaten indekslenmiş durumda.",
     upload: "PDF/TXT yükle",
     uploading: "Yükleniyor",
@@ -173,6 +193,7 @@ const exampleResponses: Record<Language, ResearchResponse> = {
     ],
     validation_notes: ["2 supporting sources found", "Policy brief includes problem, evidence, and recommendation sections"],
     workflow_steps: ["research", "analysis", "validation", "brief"],
+    provider_used: "local",
   },
   tr: {
     question: copy.tr.exampleQuestion,
@@ -194,6 +215,7 @@ const exampleResponses: Record<Language, ResearchResponse> = {
     ],
     validation_notes: ["2 destekleyici kaynak bulundu", "Politika notu problem, kanıt ve öneri bölümlerini içeriyor"],
     workflow_steps: ["research", "analysis", "validation", "brief"],
+    provider_used: "local",
   },
 };
 
@@ -216,6 +238,7 @@ function App() {
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState(copy.en.sampleIndexed);
   const [documents, setDocuments] = useState<IndexedDocument[]>([]);
+  const [provider, setProvider] = useState<Provider>("auto");
   const [currentStage, setCurrentStage] = useState(copy.en.stageReady);
   const [activeTab, setActiveTab] = useState<TabId>("answer");
 
@@ -255,7 +278,7 @@ function App() {
       const response = await fetch(`${apiBaseUrl}/research`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, language }),
+        body: JSON.stringify({ question, language, provider }),
       });
 
       if (!response.ok) {
@@ -359,6 +382,20 @@ function App() {
             </button>
           </form>
 
+          <div className="providerPanel">
+            <div>
+              <strong>{String(t.providerLabel)}</strong>
+              <span>{String(t.providerHelp)}</span>
+            </div>
+            <select value={provider} onChange={(event) => setProvider(event.target.value as Provider)}>
+              {(["auto", "groq", "gemini", "openrouter"] as Provider[]).map((option) => (
+                <option key={option} value={option}>
+                  {t.providers[option]}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="metricStrip">
             <div>
               <strong>{documents.length}</strong>
@@ -369,8 +406,8 @@ function App() {
               <span>{String(t.sources)}</span>
             </div>
             <div>
-              <strong>{loading || uploading ? String(t.busy) : String(t.ready)}</strong>
-              <span>{String(t.status)}</span>
+              <strong>{result.provider_used}</strong>
+              <span>{String(t.providerUsed)}</span>
             </div>
           </div>
 

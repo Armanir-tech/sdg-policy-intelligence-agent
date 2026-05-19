@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from typing import TypedDict
 
-import httpx
 from langgraph.graph import END, StateGraph
 
-from app.agents.llm_client import LLMUnavailable, generate_with_groq, has_llm
+from app.agents.llm_client import LLMUnavailable, generate_text
 from app.rag.vector_retriever import RetrievedChunk, retrieve_from_vector_store
 from app.schemas.research import ResearchResponse, Source
 
@@ -13,6 +12,8 @@ from app.schemas.research import ResearchResponse, Source
 class PolicyState(TypedDict, total=False):
     question: str
     language: str
+    provider: str
+    provider_used: str
     chunks: list[RetrievedChunk]
     answer: str
     policy_brief: str
@@ -47,9 +48,8 @@ def analysis_node(state: PolicyState) -> PolicyState:
         f"Source: {chunk.title} ({chunk.location})\n{chunk.text}" for chunk in chunks[:3]
     )
 
-    if has_llm():
-        try:
-            answer = generate_with_groq(
+    try:
+        answer, provider_used = generate_text(
                 system_prompt=(
                     "You are a development policy research assistant. Answer only "
                     "from the provided evidence. Be concise, analytical, and avoid "
@@ -61,11 +61,12 @@ def analysis_node(state: PolicyState) -> PolicyState:
                     f"Evidence:\n{evidence}\n\n"
                     "Write an evidence-backed answer in 1-2 paragraphs."
                 ),
+                requested_provider=state.get("provider", "auto"),
                 max_tokens=420,
             )
-            return {"answer": answer}
-        except (LLMUnavailable, httpx.HTTPError, KeyError):
-            pass
+        return {"answer": answer, "provider_used": provider_used}
+    except LLMUnavailable:
+        pass
 
     joined_evidence = " ".join(chunk.text for chunk in chunks[:2])
     if language == "tr":
@@ -152,9 +153,8 @@ def brief_node(state: PolicyState) -> PolicyState:
         f"Source: {chunk.title} ({chunk.location})\n{chunk.text}" for chunk in chunks[:3]
     )
 
-    if has_llm():
-        try:
-            policy_brief = generate_with_groq(
+    try:
+        policy_brief, provider_used = generate_text(
                 system_prompt=(
                     "You write short policy briefs for development policy audiences. "
                     "Use only the supplied evidence and keep the structure clear."
@@ -166,11 +166,12 @@ def brief_node(state: PolicyState) -> PolicyState:
                     "Draft a brief with exactly these sections in the requested language: "
                     "Problem/Problem, Evidence/Kanıt, Recommendation/Öneri. Keep it under 180 words."
                 ),
+                requested_provider=state.get("provider", "auto"),
                 max_tokens=360,
             )
-            return {"policy_brief": policy_brief}
-        except (LLMUnavailable, httpx.HTTPError, KeyError):
-            pass
+        return {"policy_brief": policy_brief, "provider_used": provider_used}
+    except LLMUnavailable:
+        pass
 
     if language == "tr":
         return {
@@ -215,9 +216,12 @@ def build_policy_graph():
 policy_graph = build_policy_graph()
 
 
-def run_policy_workflow(question: str, language: str = "en") -> ResearchResponse:
+def run_policy_workflow(question: str, language: str = "en", provider: str = "auto") -> ResearchResponse:
     normalized_language = "tr" if language == "tr" else "en"
-    state = policy_graph.invoke({"question": question, "language": normalized_language})
+    normalized_provider = provider if provider in {"auto", "groq", "gemini", "openrouter"} else "auto"
+    state = policy_graph.invoke(
+        {"question": question, "language": normalized_language, "provider": normalized_provider}
+    )
     chunks = state.get("chunks", [])
 
     return ResearchResponse(
@@ -230,4 +234,5 @@ def run_policy_workflow(question: str, language: str = "en") -> ResearchResponse
         ],
         validation_notes=state.get("validation_notes", []),
         workflow_steps=["research", "analysis", "validation", "brief"],
+        provider_used=state.get("provider_used", "local"),
     )

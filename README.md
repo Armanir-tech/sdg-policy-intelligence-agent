@@ -45,7 +45,7 @@ The project demonstrates:
 - Vector database usage with ChromaDB.
 - PDF/TXT document ingestion.
 - LangGraph-based agent workflow design.
-- Optional Groq LLM API support for generated answers and briefs.
+- Optional Groq, Gemini, or OpenRouter LLM API support for generated answers and briefs.
 - Deployment on an Ubuntu server with systemd and nginx.
 
 ## Architecture
@@ -70,6 +70,8 @@ Backend:
 - pypdf
 - LangGraph
 - Groq API optional
+- Gemini API optional
+- OpenRouter API optional
 - systemd
 
 Frontend:
@@ -159,7 +161,7 @@ Implemented:
 - ChromaDB vector retrieval
 - PDF/TXT upload
 - LangGraph workflow
-- optional Groq LLM generation
+- optional multi-provider LLM generation
 - nginx deployment
 - systemd backend service
 
@@ -170,18 +172,26 @@ Planned improvements:
 - better document management
 - user authentication for private deployments
 
-## Optional Free LLM API
+## Optional Free LLM APIs
 
 The app can run without any LLM API key by using template-based answer and brief
-generation. If `GROQ_API_KEY` is configured, the LangGraph workflow uses Groq's
-OpenAI-compatible API for the analysis and policy brief steps.
+generation. If API keys are configured, the LangGraph workflow can use Groq,
+Gemini, or OpenRouter for the analysis and policy brief steps.
 
 Environment variables:
 
 ```env
 GROQ_API_KEY=your_key_here
 GROQ_MODEL=llama-3.1-8b-instant
+GEMINI_API_KEY=your_key_here
+GEMINI_MODEL=gemini-2.5-flash
+OPENROUTER_API_KEY=your_key_here
+OPENROUTER_MODEL=meta-llama/llama-3.1-8b-instruct:free
 ```
+
+The UI lets the user choose `Auto`, `Groq`, `Gemini`, or `OpenRouter`.
+`Auto` tries configured providers in order and falls back to the local template
+mode if no API provider is available.
 
 ## Learning Notes
 

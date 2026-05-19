@@ -3,6 +3,8 @@
 Groq provides an OpenAI-compatible API with a free developer tier and rate limits.
 This project can use Groq for the `analysis` and `brief` LangGraph steps.
 
+For multi-provider setup, also see `docs/ai-provider-setup.md`.
+
 ## 1. Create API Key
 
 Create a Groq API key from:

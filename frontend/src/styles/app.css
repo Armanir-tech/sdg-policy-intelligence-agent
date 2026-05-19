@@ -229,6 +229,47 @@ h1 {
   transform: none;
 }
 
+.providerPanel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px;
+  gap: 12px;
+  align-items: center;
+  margin-top: 14px;
+  border: 1px solid rgba(18, 61, 53, 0.1);
+  border-radius: 8px;
+  padding: 14px;
+  background: #fbfcfa;
+}
+
+.providerPanel strong,
+.providerPanel span {
+  display: block;
+}
+
+.providerPanel strong {
+  color: #17362f;
+  font-size: 14px;
+}
+
+.providerPanel span {
+  margin-top: 4px;
+  color: #697b75;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.providerPanel select {
+  width: 100%;
+  border: 1px solid rgba(18, 61, 53, 0.14);
+  border-radius: 8px;
+  padding: 10px 11px;
+  color: #17362f;
+  background: #ffffff;
+  font-size: 13px;
+  font-weight: 900;
+  outline: none;
+}
+
 .metricStrip {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -658,6 +699,10 @@ h1 {
   }
 
   .metricStrip {
+    grid-template-columns: 1fr;
+  }
+
+  .providerPanel {
     grid-template-columns: 1fr;
   }
 }

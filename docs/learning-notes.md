@@ -85,11 +85,13 @@ After that, new questions can retrieve evidence from the uploaded document.
 
 ## How The Optional LLM Layer Works
 
-The app can run in two modes:
+The app can run in several modes:
 
 ```text
 No API key -> retrieval + template-based answer/brief
 Groq API key -> retrieval + LLM-generated answer/brief
+Gemini API key -> retrieval + LLM-generated answer/brief
+OpenRouter API key -> retrieval + LLM-generated answer/brief
 ```
 
 This keeps the demo reliable. If the free API key is missing or fails, the app
