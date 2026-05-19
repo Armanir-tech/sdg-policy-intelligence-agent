@@ -489,6 +489,8 @@ h1 {
 }
 
 .stageBanner {
+  position: relative;
+  overflow: hidden;
   border: 1px solid rgba(182, 111, 37, 0.18);
   border-radius: 8px;
   padding: 14px 16px;
@@ -507,6 +509,66 @@ h1 {
   color: #665642;
   font-size: 13px;
   line-height: 1.45;
+}
+
+.activityLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #b66f25, transparent);
+  animation: activitySweep 1.3s ease-in-out infinite;
+}
+
+@keyframes activitySweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.signalGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.signalCard {
+  border: 1px solid rgba(18, 61, 53, 0.1);
+  border-radius: 8px;
+  padding: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(247, 250, 247, 0.94));
+}
+
+.signalCard span,
+.signalCard strong,
+.signalCard small {
+  display: block;
+}
+
+.signalCard span {
+  color: #24715f;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.signalCard strong {
+  margin-top: 7px;
+  color: #14342f;
+  font-size: 22px;
+  line-height: 1;
+  text-transform: capitalize;
+}
+
+.signalCard small {
+  margin-top: 6px;
+  color: #6a7d76;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .resultPanel {
@@ -667,6 +729,10 @@ h1 {
 @media (max-width: 980px) {
   .workspace,
   .workflowRail {
+    grid-template-columns: 1fr;
+  }
+
+  .signalGrid {
     grid-template-columns: 1fr;
   }
 

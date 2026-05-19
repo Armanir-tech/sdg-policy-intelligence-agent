@@ -7,6 +7,8 @@ venv/
 
 # Environment
 .env
+.env.*
+!.env.example
 
 # App storage
 backend/storage/
@@ -21,4 +23,3 @@ frontend/dist/
 Thumbs.db
 .idea/
 .vscode/
-

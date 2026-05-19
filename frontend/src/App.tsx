@@ -67,6 +67,12 @@ const copy = {
       openrouter: "OpenRouter",
     },
     providerUsed: "provider",
+    signalEvidence: "Evidence index",
+    signalEvidenceText: "documents searchable",
+    signalRouting: "AI routing",
+    signalRoutingText: "selected provider",
+    signalWorkflow: "Agent workflow",
+    signalWorkflowText: "controlled steps",
     sampleIndexed: "Sample reports are already indexed.",
     upload: "Upload PDF/TXT",
     uploading: "Uploading",
@@ -131,6 +137,12 @@ const copy = {
       openrouter: "OpenRouter",
     },
     providerUsed: "sağlayıcı",
+    signalEvidence: "Kanıt indeksi",
+    signalEvidenceText: "aranabilir belge",
+    signalRouting: "AI yönlendirme",
+    signalRoutingText: "seçili sağlayıcı",
+    signalWorkflow: "Ajan iş akışı",
+    signalWorkflowText: "kontrollü adım",
     sampleIndexed: "Örnek raporlar zaten indekslenmiş durumda.",
     upload: "PDF/TXT yükle",
     uploading: "Yükleniyor",
@@ -467,6 +479,25 @@ function App() {
           <div className="stageBanner">
             <span>{currentStage}</span>
             <p>{String(t.stageHelp)}</p>
+            {(loading || uploading) && <div className="activityLine" aria-hidden="true" />}
+          </div>
+
+          <div className="signalGrid" aria-label="System summary">
+            <div className="signalCard">
+              <span>{String(t.signalEvidence)}</span>
+              <strong>{documents.length}</strong>
+              <small>{String(t.signalEvidenceText)}</small>
+            </div>
+            <div className="signalCard">
+              <span>{String(t.signalRouting)}</span>
+              <strong>{provider}</strong>
+              <small>{String(t.signalRoutingText)}</small>
+            </div>
+            <div className="signalCard">
+              <span>{String(t.signalWorkflow)}</span>
+              <strong>{result.workflow_steps?.length || 0}</strong>
+              <small>{String(t.signalWorkflowText)}</small>
+            </div>
           </div>
 
           <article className="resultPanel">
