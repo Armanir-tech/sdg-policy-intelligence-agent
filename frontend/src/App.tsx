@@ -8,9 +8,12 @@ import {
   FileText,
   Layers3,
   LineChart,
+  ListChecks,
   Network,
+  PlayCircle,
   ShieldCheck,
   Sparkles,
+  UploadCloud,
   WandSparkles,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -65,6 +68,13 @@ const copy = {
     ready: "Ready",
     busy: "Busy",
     addReport: "Add a report",
+    guideTitle: "How it works",
+    guideSteps: [
+      { title: "Upload", text: "Add a PDF or TXT report", icon: "upload" },
+      { title: "Index", text: "The report becomes searchable", icon: "index" },
+      { title: "Analyze", text: "Run the agent and get a brief", icon: "analyze" },
+    ],
+    uploadReady: "Report is indexed and ready for analysis.",
     providerLabel: "AI provider",
     providerHelp: "Auto tries configured providers in order and falls back safely.",
     providers: {
@@ -163,6 +173,13 @@ const copy = {
     ready: "Hazır",
     busy: "Çalışıyor",
     addReport: "Rapor ekle",
+    guideTitle: "Nasıl kullanılır",
+    guideSteps: [
+      { title: "Yükle", text: "PDF veya TXT rapor ekle", icon: "upload" },
+      { title: "İndeksle", text: "Rapor aranabilir hale gelir", icon: "index" },
+      { title: "Analiz et", text: "Ajanı çalıştır ve brief al", icon: "analyze" },
+    ],
+    uploadReady: "Rapor indekslendi ve analize hazır.",
     providerLabel: "AI sağlayıcı",
     providerHelp: "Otomatik seçenek ayarlı sağlayıcıları sırayla dener ve gerekirse güvenli yedeğe döner.",
     providers: {
@@ -316,6 +333,12 @@ const workflowIcons: Record<string, LucideIcon> = {
   brief: BookOpenText,
 };
 
+const guideIcons: Record<string, LucideIcon> = {
+  upload: UploadCloud,
+  index: ListChecks,
+  analyze: PlayCircle,
+};
+
 function getClientId() {
   const storageKey = "sdg-policy-client-id";
   const existing = window.localStorage.getItem(storageKey);
@@ -344,6 +367,7 @@ function App() {
   const [clientId] = useState(getClientId);
   const [privateMode, setPrivateMode] = useState(true);
   const [copied, setCopied] = useState(false);
+  const uploadComplete = currentStage === t.stageIndexed;
 
   const activeWorkflowKeys = loading
     ? currentStage === t.stageSearching
@@ -521,6 +545,28 @@ function App() {
         </div>
       </section>
 
+      <section className="guideHero" aria-label={String(t.guideTitle)}>
+        <div>
+          <span>{String(t.guideTitle)}</span>
+          <strong>{String(t.headline)}</strong>
+        </div>
+        <div className="guideSteps">
+          {(t.guideSteps as Array<{ title: string; text: string; icon: string }>).map((step, index) => {
+            const Icon = guideIcons[step.icon];
+            return (
+              <div className="guideStep" key={step.title}>
+                <span>{index + 1}</span>
+                <Icon size={17} />
+                <div>
+                  <b>{step.title}</b>
+                  <small>{step.text}</small>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
       <section className="workspace">
         <aside className="queryPanel">
           <div className="panelTitle">
@@ -529,6 +575,25 @@ function App() {
           </div>
           <h1>{String(t.headline)}</h1>
           <p>{String(t.intro)}</p>
+
+          <div className="guidePanel">
+            <strong>{String(t.guideTitle)}</strong>
+            <div className="guideSteps">
+              {(t.guideSteps as Array<{ title: string; text: string; icon: string }>).map((step, index) => {
+                const Icon = guideIcons[step.icon];
+                return (
+                  <div className="guideStep" key={step.title}>
+                    <span>{index + 1}</span>
+                    <Icon size={17} />
+                    <div>
+                      <b>{step.title}</b>
+                      <small>{step.text}</small>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
           <form className="questionBox" onSubmit={handleSubmit}>
             <label htmlFor="research-question">{String(t.questionLabel)}</label>
@@ -553,6 +618,11 @@ function App() {
               </div>
             </div>
             <div className="promptGrid">
+              {(t.uploadActions as string[]).map((action) => (
+                <button type="button" key={action} onClick={() => usePrompt(action)}>
+                  {action}
+                </button>
+              ))}
               {(t.samplePrompts as string[]).map((prompt) => (
                 <button type="button" key={prompt} onClick={() => usePrompt(prompt)}>
                   {prompt}
@@ -606,9 +676,14 @@ function App() {
           </div>
 
           <div className="uploadPanel">
-            <div>
-              <strong>{String(t.addReport)}</strong>
-              <span>{uploadMessage}</span>
+            <div className="uploadPanelHeader">
+              <div>
+                <strong>{String(t.addReport)}</strong>
+                <span>{uploadMessage}</span>
+              </div>
+              <span className={uploadComplete ? "uploadStatus ready" : uploading ? "uploadStatus busy" : "uploadStatus"}>
+                {uploadComplete ? String(t.uploadReady) : uploading ? String(t.indexing) : String(t.ready)}
+              </span>
             </div>
             <label className={uploading ? "uploadButton disabled" : "uploadButton"}>
               {uploading ? String(t.indexing) : String(t.upload)}

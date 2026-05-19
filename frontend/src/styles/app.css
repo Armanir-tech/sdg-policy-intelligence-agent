@@ -948,6 +948,10 @@ h1 {
     grid-template-columns: 1fr;
   }
 
+  .guideHero {
+    grid-template-columns: 1fr;
+  }
+
   .consoleSignals {
     justify-content: flex-start;
   }
@@ -1131,6 +1135,54 @@ textarea:focus-visible {
   padding: 26px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(250, 252, 250, 0.92));
+  display: flex;
+  flex-direction: column;
+}
+
+.queryPanel .panelTitle {
+  order: 0;
+}
+
+.queryPanel h1 {
+  order: 1;
+  display: none;
+}
+
+.queryPanel > p {
+  order: 2;
+  display: none;
+}
+
+.guidePanel {
+  order: 3;
+}
+
+.uploadPanel {
+  order: 4;
+}
+
+.documentsPanel {
+  order: 5;
+}
+
+.questionBox {
+  order: 6;
+}
+
+.promptDeck {
+  order: 7;
+}
+
+.providerPanel {
+  order: 8;
+}
+
+.modePanel {
+  order: 9;
+}
+
+.metricStrip {
+  order: 10;
 }
 
 .analysisPanel {
@@ -1154,6 +1206,125 @@ h1 {
 .queryPanel > p {
   color: var(--muted);
   max-width: 60ch;
+}
+
+.guidePanel {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+  border: 1px solid rgba(42, 114, 134, 0.18);
+  border-radius: 8px;
+  padding: 14px;
+  background:
+    linear-gradient(135deg, #ffffff, #eef7f3);
+}
+
+.queryPanel > .guidePanel {
+  display: none;
+}
+
+.guideHero {
+  display: grid;
+  grid-template-columns: 0.5fr 1fr;
+  gap: 18px;
+  align-items: center;
+  max-width: 1280px;
+  margin: 0 auto 20px;
+  border: 1px solid rgba(42, 114, 134, 0.18);
+  border-radius: 8px;
+  padding: 16px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(233, 246, 241, 0.92));
+  box-shadow: var(--shadow-soft);
+}
+
+.guideHero > div:first-child {
+  display: grid;
+  gap: 5px;
+}
+
+.guideHero > div:first-child span {
+  color: var(--teal);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.guideHero > div:first-child strong {
+  color: var(--ink);
+  font-size: 19px;
+  line-height: 1.25;
+}
+
+.guidePanel > strong {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.guideSteps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.guideStep {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 8px;
+  align-items: center;
+  min-height: 72px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.guideStep::after {
+  content: "";
+  position: absolute;
+  left: calc(100% + 2px);
+  top: 50%;
+  width: 10px;
+  height: 2px;
+  background: rgba(17, 111, 93, 0.22);
+}
+
+.guideStep:last-child::after {
+  display: none;
+}
+
+.guideStep > span {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: var(--teal);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.guideStep svg {
+  color: var(--blue);
+}
+
+.guideStep b,
+.guideStep small {
+  display: block;
+}
+
+.guideStep b {
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.guideStep small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.25;
 }
 
 .questionBox textarea {
@@ -1292,6 +1463,43 @@ h1 {
 .uploadButton:hover,
 .documentsHeader button:hover {
   background: #dff1ea;
+}
+
+.uploadPanelHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.uploadStatus {
+  display: inline-flex;
+  flex: 0 1 auto;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 9px;
+  color: var(--muted);
+  background: #ffffff;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.uploadStatus.ready {
+  border-color: rgba(17, 111, 93, 0.3);
+  color: var(--teal-strong);
+  background: var(--teal-soft);
+}
+
+.uploadStatus.busy {
+  border-color: rgba(201, 120, 37, 0.28);
+  color: #8a4c13;
+  background: var(--amber-soft);
+}
+
+.uploadPanel .uploadActions {
+  display: none;
 }
 
 .documentList {
@@ -1488,6 +1696,10 @@ h1 {
     padding: 14px;
   }
 
+  .guideHero {
+    padding: 14px;
+  }
+
   h1 {
     max-width: none;
     font-size: 30px;
@@ -1495,9 +1707,14 @@ h1 {
   }
 
   .promptGrid,
+  .guideSteps,
   .metricStrip,
   .signalGrid {
     grid-template-columns: 1fr;
+  }
+
+  .guideStep::after {
+    display: none;
   }
 
   .questionBox button,
