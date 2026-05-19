@@ -13,6 +13,7 @@ class PolicyState(TypedDict, total=False):
     question: str
     language: str
     provider: str
+    client_id: str | None
     provider_used: str
     chunks: list[RetrievedChunk]
     answer: str
@@ -21,7 +22,7 @@ class PolicyState(TypedDict, total=False):
 
 
 def research_node(state: PolicyState) -> PolicyState:
-    return {"chunks": retrieve_from_vector_store(state["question"])}
+    return {"chunks": retrieve_from_vector_store(state["question"], client_id=state.get("client_id"))}
 
 
 def analysis_node(state: PolicyState) -> PolicyState:
@@ -216,11 +217,21 @@ def build_policy_graph():
 policy_graph = build_policy_graph()
 
 
-def run_policy_workflow(question: str, language: str = "en", provider: str = "auto") -> ResearchResponse:
+def run_policy_workflow(
+    question: str,
+    language: str = "en",
+    provider: str = "auto",
+    client_id: str | None = None,
+) -> ResearchResponse:
     normalized_language = "tr" if language == "tr" else "en"
     normalized_provider = provider if provider in {"auto", "groq", "gemini", "openrouter"} else "auto"
     state = policy_graph.invoke(
-        {"question": question, "language": normalized_language, "provider": normalized_provider}
+        {
+            "question": question,
+            "language": normalized_language,
+            "provider": normalized_provider,
+            "client_id": client_id,
+        }
     )
     chunks = state.get("chunks", [])
 
@@ -229,7 +240,16 @@ def run_policy_workflow(question: str, language: str = "en", provider: str = "au
         answer=state.get("answer", ""),
         policy_brief=state.get("policy_brief", ""),
         sources=[
-            Source(title=chunk.title, location=chunk.location, excerpt=chunk.text)
+            Source(
+                title=chunk.title if chunk.source_type == "sample" else "Uploaded policy report",
+                location=chunk.location if chunk.source_type == "sample" else "private uploaded source",
+                excerpt=(
+                    chunk.text
+                    if chunk.source_type == "sample"
+                    else "A matching passage was found in an uploaded document. The full excerpt is hidden in the public demo."
+                ),
+                source_type=chunk.source_type,
+            )
             for chunk in chunks
         ],
         validation_notes=state.get("validation_notes", []),

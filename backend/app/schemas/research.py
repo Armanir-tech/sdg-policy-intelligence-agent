@@ -5,12 +5,14 @@ class ResearchRequest(BaseModel):
     question: str = Field(..., min_length=5)
     language: str = "en"
     provider: str = "auto"
+    client_id: str | None = None
 
 
 class Source(BaseModel):
     title: str
     location: str
     excerpt: str
+    source_type: str = "sample"
 
 
 class ResearchResponse(BaseModel):

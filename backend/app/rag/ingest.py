@@ -12,6 +12,14 @@ from app.rag.local_embeddings import LocalHashEmbedding
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "data" / "sample_reports"
 UPLOAD_DIR = Path(__file__).resolve().parents[3] / "data" / "uploads"
+SAMPLE_FILES = {"sdg_financing.txt", "digital_inclusion.txt"}
+
+
+def public_document_label(file_name: str, source_type: str, index: int | None = None) -> str:
+    if source_type == "sample":
+        return file_name
+    suffix = f" {index}" if index is not None else ""
+    return f"Uploaded document{suffix}"
 
 
 def read_pdf(path: Path) -> str:
@@ -87,6 +95,7 @@ def ingest_sample_documents() -> int:
                     "title": title,
                     "location": f"{path.name} chunk {index}",
                     "file_name": path.name,
+                    "source_type": "sample",
                 }
             )
 
@@ -96,7 +105,7 @@ def ingest_sample_documents() -> int:
     return collection.count()
 
 
-def ingest_uploaded_file(path: Path) -> int:
+def ingest_uploaded_file(path: Path, client_id: str | None = None) -> int:
     collection = get_collection()
 
     if path.suffix.lower() == ".pdf":
@@ -116,9 +125,11 @@ def ingest_uploaded_file(path: Path) -> int:
         documents.append(chunk)
         metadatas.append(
             {
-                "title": title,
-                "location": f"{path.name} chunk {index}",
+                "title": "Uploaded document",
+                "location": f"uploaded source chunk {index}",
                 "file_name": path.name,
+                "source_type": "uploaded",
+                "client_id": client_id or "",
             }
         )
 
@@ -128,7 +139,7 @@ def ingest_uploaded_file(path: Path) -> int:
     return len(documents)
 
 
-def list_indexed_documents() -> list[dict[str, str | int]]:
+def list_indexed_documents(client_id: str | None = None) -> list[dict[str, str | int]]:
     collection = get_collection()
     count = collection.count()
     if count == 0:
@@ -141,18 +152,29 @@ def list_indexed_documents() -> list[dict[str, str | int]]:
     for metadata in metadatas:
         file_name = str(metadata.get("file_name", "unknown"))
         title = str(metadata.get("title", file_name))
+        source_type = str(metadata.get("source_type", "uploaded" if file_name not in SAMPLE_FILES else "sample"))
+        document_client_id = str(metadata.get("client_id", ""))
+        if source_type == "uploaded" and (not client_id or document_client_id != client_id):
+            continue
         current = grouped.setdefault(
             file_name,
             {
-                "file_name": file_name,
-                "title": title,
+                "file_name": public_document_label(file_name, source_type),
+                "title": title if source_type == "sample" else "Uploaded policy report",
                 "chunks": 0,
-                "source_type": "uploaded" if file_name not in {"sdg_financing.txt", "digital_inclusion.txt"} else "sample",
+                "source_type": source_type,
             },
         )
         current["chunks"] = int(current["chunks"]) + 1
 
-    return sorted(grouped.values(), key=lambda item: str(item["file_name"]))
+    public_items = sorted(grouped.values(), key=lambda item: str(item["file_name"]))
+    upload_index = 0
+    for item in public_items:
+        if item["source_type"] == "uploaded":
+            upload_index += 1
+            item["file_name"] = public_document_label("", "uploaded", upload_index)
+
+    return public_items
 
 
 def reset_collection() -> int:

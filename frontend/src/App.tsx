@@ -78,10 +78,15 @@ const copy = {
     uploading: "Uploading",
     indexing: "Indexing",
     uploadFailed: "Upload failed. Use a PDF or TXT file and try again.",
-    indexedDocuments: "Indexed documents",
+    indexedDocuments: "Indexed library",
+    indexedHelp: "Private upload names and excerpts are masked in the public demo.",
     refresh: "Refresh",
     noDocuments: "No indexed documents found yet.",
     chunk: "chunks",
+    consoleTitle: "Live agent route",
+    consoleText: "RAG search -> LLM reasoning -> policy brief",
+    privacyTitle: "Privacy mode",
+    privacyText: "Public viewers see masked upload labels only.",
     stageReady: "Ready",
     stageSearching: "Searching indexed documents",
     stageRetrieving: "Retrieving evidence",
@@ -108,8 +113,8 @@ const copy = {
       { step: "Brief", description: "Draft policy recommendation", key: "brief" },
     ],
     exampleQuestion: "How can private sector finance support SDG implementation?",
-    uploadedQuestion: (fileName: string) => `What are the main findings and recommendations in ${fileName}?`,
-    indexedMessage: (fileName: string, chunks: number) => `${fileName} indexed with ${chunks} chunks.`,
+    uploadedQuestion: () => "What are the main findings and recommendations in the uploaded document?",
+    indexedMessage: (_fileName: string, chunks: number) => `Uploaded document indexed with ${chunks} chunks.`,
     uploadingMessage: (fileName: string) => `Uploading ${fileName}`,
   },
   tr: {
@@ -148,10 +153,15 @@ const copy = {
     uploading: "Yükleniyor",
     indexing: "İşleniyor",
     uploadFailed: "Yükleme başarısız. PDF veya TXT dosyasıyla tekrar dene.",
-    indexedDocuments: "İndekslenen belgeler",
+    indexedDocuments: "İndekslenen kütüphane",
+    indexedHelp: "Public demoda yüklenen dosya adları ve pasajları maskelenir.",
     refresh: "Yenile",
     noDocuments: "Henüz indekslenmiş belge bulunamadı.",
     chunk: "parça",
+    consoleTitle: "Canlı ajan rotası",
+    consoleText: "RAG arama -> LLM muhakeme -> politika notu",
+    privacyTitle: "Gizlilik modu",
+    privacyText: "Public izleyiciler sadece maskelenmiş yükleme etiketlerini görür.",
     stageReady: "Hazır",
     stageSearching: "İndekslenen belgelerde aranıyor",
     stageRetrieving: "Kanıtlar getiriliyor",
@@ -178,8 +188,8 @@ const copy = {
       { step: "Brief yaz", description: "Politika önerisini hazırla", key: "brief" },
     ],
     exampleQuestion: "Özel sektör finansmanı SKA uygulamasını nasıl destekleyebilir?",
-    uploadedQuestion: (fileName: string) => `${fileName} içindeki ana bulgular ve öneriler nelerdir?`,
-    indexedMessage: (fileName: string, chunks: number) => `${fileName} ${chunks} parça olarak indekslendi.`,
+    uploadedQuestion: () => "Yüklenen belgedeki ana bulgular ve öneriler nelerdir?",
+    indexedMessage: (_fileName: string, chunks: number) => `Yüklenen belge ${chunks} parça olarak indekslendi.`,
     uploadingMessage: (fileName: string) => `${fileName} yükleniyor`,
   },
 };
@@ -241,6 +251,19 @@ const workflowIcons: Record<string, LucideIcon> = {
   brief: BookOpenText,
 };
 
+function getClientId() {
+  const storageKey = "sdg-policy-client-id";
+  const existing = window.localStorage.getItem(storageKey);
+  if (existing) {
+    return existing;
+  }
+
+  const generated =
+    window.crypto?.randomUUID?.() || `client-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  window.localStorage.setItem(storageKey, generated);
+  return generated;
+}
+
 function App() {
   const [language, setLanguage] = useState<Language>("en");
   const t = copy[language];
@@ -253,6 +276,7 @@ function App() {
   const [provider, setProvider] = useState<Provider>("auto");
   const [currentStage, setCurrentStage] = useState(copy.en.stageReady);
   const [activeTab, setActiveTab] = useState<TabId>("answer");
+  const [clientId] = useState(getClientId);
 
   function switchLanguage(nextLanguage: Language) {
     setLanguage(nextLanguage);
@@ -264,7 +288,9 @@ function App() {
 
   async function refreshDocuments() {
     try {
-      const response = await fetch(`${apiBaseUrl}/documents`);
+      const response = await fetch(`${apiBaseUrl}/documents`, {
+        headers: { "X-Client-Id": clientId },
+      });
       if (!response.ok) {
         throw new Error("Failed to load documents");
       }
@@ -277,7 +303,7 @@ function App() {
 
   useEffect(() => {
     refreshDocuments();
-  }, []);
+  }, [clientId]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -290,7 +316,7 @@ function App() {
       const response = await fetch(`${apiBaseUrl}/research`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, language, provider }),
+        body: JSON.stringify({ question, language, provider, client_id: clientId }),
       });
 
       if (!response.ok) {
@@ -323,6 +349,7 @@ function App() {
     try {
       const response = await fetch(`${apiBaseUrl}/documents/upload`, {
         method: "POST",
+        headers: { "X-Client-Id": clientId },
         body: formData,
       });
 
@@ -370,6 +397,22 @@ function App() {
           </div>
         </div>
       </header>
+
+      <section className="agentConsole" aria-label="Agent console">
+        <div>
+          <span>{String(t.consoleTitle)}</span>
+          <strong>{String(t.consoleText)}</strong>
+        </div>
+        <div className="consoleSignals" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+        </div>
+        <div>
+          <span>{String(t.privacyTitle)}</span>
+          <strong>{String(t.privacyText)}</strong>
+        </div>
+      </section>
 
       <section className="workspace">
         <aside className="queryPanel">
@@ -436,7 +479,10 @@ function App() {
 
           <div className="documentsPanel">
             <div className="documentsHeader">
-              <strong>{String(t.indexedDocuments)}</strong>
+              <div>
+                <strong>{String(t.indexedDocuments)}</strong>
+                <span>{String(t.indexedHelp)}</span>
+              </div>
               <button type="button" onClick={refreshDocuments}>{String(t.refresh)}</button>
             </div>
             {documents.length === 0 ? (
