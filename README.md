@@ -35,7 +35,19 @@ research -> analysis -> validation -> brief
 
 ## Why I Built It
 
-The goal was to build a practical project aligned with agentic AI research work in the development policy space.
+I built this project to turn the AI, API, backend, frontend, and deployment topics I have been learning into a real working product. Instead of only using AI tools from the outside, I wanted to understand how an AI-powered application is actually designed, connected, deployed, and presented as a portfolio project.
+
+The project is also aligned with agentic AI research work in the development policy space. It gave me a practical way to apply concepts such as API integration, document upload, retrieval, vector search, prompt design, agent workflows, and policy brief generation in one end-to-end system.
+
+In short, I built it to practice:
+
+- using real AI APIs in an application,
+- connecting a frontend to a backend,
+- building a RAG pipeline over PDF/TXT documents,
+- designing an agent workflow with clear steps,
+- deploying a project on my own Ubuntu server,
+- improving the UI/UX until it feels usable,
+- documenting the work clearly on GitHub as a portfolio project.
 
 The project demonstrates:
 
@@ -47,6 +59,7 @@ The project demonstrates:
 - LangGraph-based agent workflow design.
 - Optional Groq, Gemini, or OpenRouter LLM API support for generated answers and briefs.
 - Deployment on an Ubuntu server with systemd and nginx.
+- Basic public demo privacy controls, including masked uploaded document names and scoped browser sessions.
 
 ## Architecture
 
@@ -160,17 +173,21 @@ Implemented:
 - React/Vite frontend
 - ChromaDB vector retrieval
 - PDF/TXT upload
+- upload size limit and sanitized uploaded file names
+- browser-scoped uploaded document access for the public demo
 - LangGraph workflow
 - optional multi-provider LLM generation
 - nginx deployment
 - systemd backend service
+- bilingual English/Turkish interface
+- copy/download policy brief actions
 
 Planned improvements:
 
 - OpenAI embeddings
 - evaluation metrics for citation coverage
-- better document management
 - user authentication for private deployments
+- stronger production document management with accounts and audit logs
 
 ## Optional Free LLM APIs
 
@@ -192,6 +209,22 @@ OPENROUTER_MODEL=meta-llama/llama-3.1-8b-instruct:free
 The UI lets the user choose `Auto`, `Groq`, `Gemini`, or `OpenRouter`.
 `Auto` tries configured providers in order and falls back to the local template
 mode if no API provider is available.
+
+## Security And Privacy Notes
+
+This is a public portfolio demo, so it includes basic safeguards:
+
+- real API keys are kept in server-side `.env` files and are not committed,
+- uploaded document file names are masked in the UI,
+- uploaded documents are scoped to a browser session with an anonymous client id,
+- upload file names are sanitized before storage,
+- upload size is limited,
+- only PDF/TXT uploads are accepted,
+- the backend sends basic security headers,
+- CORS is restricted to the expected frontend origins by default.
+
+For a production deployment, the next step would be real user authentication,
+database-backed document ownership, audit logs, and stricter rate limiting.
 
 ## Learning Notes
 

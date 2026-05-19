@@ -115,10 +115,6 @@ const copy = {
     stageUploadFailed: "Upload failed",
     stageHelp:
       "Uploading adds documents to the evidence index. Running analysis searches those indexed documents and returns the strongest source passages.",
-    modeTitle: "Workspace mode",
-    modePublic: "Public demo",
-    modePrivate: "Private workspace",
-    modeHelp: "Private mode keeps uploaded reports scoped to this browser session.",
     quickActions: "Quick actions",
     quickHelp: "Use these after uploading a report or when you want a faster start.",
     uploadActions: [
@@ -220,10 +216,6 @@ const copy = {
     stageUploadFailed: "Yükleme başarısız",
     stageHelp:
       "Yükleme, belgeleri kanıt indeksine ekler. Analiz çalışınca sistem bu belgelerde arama yapar ve en güçlü kaynak pasajlarını döndürür.",
-    modeTitle: "Çalışma modu",
-    modePublic: "Public demo",
-    modePrivate: "Özel çalışma alanı",
-    modeHelp: "Özel mod, yüklenen raporları bu tarayıcı oturumuyla sınırlar.",
     quickActions: "Hızlı aksiyonlar",
     quickHelp: "Rapor yükledikten sonra veya hızlı başlamak istediğinde bunları kullan.",
     uploadActions: [
@@ -365,7 +357,6 @@ function App() {
   const [currentStage, setCurrentStage] = useState(copy.en.stageReady);
   const [activeTab, setActiveTab] = useState<TabId>("answer");
   const [clientId] = useState(getClientId);
-  const [privateMode, setPrivateMode] = useState(true);
   const [copied, setCopied] = useState(false);
   const uploadComplete = currentStage === t.stageIndexed;
 
@@ -643,21 +634,6 @@ function App() {
                 </option>
               ))}
             </select>
-          </div>
-
-          <div className="modePanel">
-            <div>
-              <strong>{String(t.modeTitle)}</strong>
-              <span>{String(t.modeHelp)}</span>
-            </div>
-            <div className="modeToggle" aria-label={String(t.modeTitle)}>
-              <button type="button" className={!privateMode ? "active" : ""} onClick={() => setPrivateMode(false)}>
-                {String(t.modePublic)}
-              </button>
-              <button type="button" className={privateMode ? "active" : ""} onClick={() => setPrivateMode(true)}>
-                {String(t.modePrivate)}
-              </button>
-            </div>
           </div>
 
           <div className="metricStrip">

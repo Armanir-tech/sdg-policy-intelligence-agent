@@ -301,8 +301,7 @@ h1 {
   transform: none;
 }
 
-.promptDeck,
-.modePanel {
+.promptDeck {
   display: grid;
   gap: 12px;
   margin-top: 14px;
@@ -324,20 +323,16 @@ h1 {
 }
 
 .promptDeckHeader strong,
-.promptDeckHeader span,
-.modePanel strong,
-.modePanel span {
+.promptDeckHeader span {
   display: block;
 }
 
-.promptDeckHeader strong,
-.modePanel strong {
+.promptDeckHeader strong {
   color: #17362f;
   font-size: 14px;
 }
 
-.promptDeckHeader span,
-.modePanel span {
+.promptDeckHeader span {
   margin-top: 4px;
   color: #697b75;
   font-size: 12px;
@@ -414,36 +409,6 @@ h1 {
   font-size: 13px;
   font-weight: 900;
   outline: none;
-}
-
-.modePanel {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.modeToggle {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 6px;
-  border: 1px solid rgba(18, 61, 53, 0.1);
-  border-radius: 8px;
-  padding: 4px;
-  background: #eef3f0;
-}
-
-.modeToggle button {
-  border: 0;
-  border-radius: 6px;
-  padding: 9px 8px;
-  color: #526861;
-  background: transparent;
-  font-size: 12px;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.modeToggle button.active {
-  color: #ffffff;
-  background: #123d35;
 }
 
 .metricStrip {
@@ -1092,8 +1057,7 @@ textarea:focus-visible {
   background: var(--surface-solid);
 }
 
-.languageToggle button.active,
-.modeToggle button.active {
+.languageToggle button.active {
   background: var(--ink);
 }
 
@@ -1177,12 +1141,8 @@ textarea:focus-visible {
   order: 8;
 }
 
-.modePanel {
-  order: 9;
-}
-
 .metricStrip {
-  order: 10;
+  order: 9;
 }
 
 .analysisPanel {
@@ -1351,7 +1311,6 @@ h1 {
 }
 
 .promptDeck,
-.modePanel,
 .providerPanel,
 .uploadPanel,
 .documentsPanel {
@@ -1364,7 +1323,6 @@ h1 {
 }
 
 .promptDeckHeader strong,
-.modePanel strong,
 .providerPanel strong,
 .uploadPanel strong,
 .documentsHeader strong {
@@ -1372,7 +1330,6 @@ h1 {
 }
 
 .promptDeckHeader span,
-.modePanel span,
 .providerPanel span,
 .uploadPanel span,
 .documentsHeader span,
@@ -1406,15 +1363,6 @@ h1 {
   border-color: var(--line-strong);
   color: var(--ink);
   background: var(--surface-solid);
-}
-
-.modeToggle {
-  border-color: var(--line);
-  background: #edf2ef;
-}
-
-.modeToggle button {
-  min-height: 36px;
 }
 
 .metricStrip {
