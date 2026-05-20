@@ -6,6 +6,10 @@ class Settings(BaseSettings):
     app_env: str = "development"
     chroma_dir: str = "./storage/chroma"
     max_upload_bytes: int = 8 * 1024 * 1024
+    upload_rate_limit: int = 6
+    upload_rate_window_seconds: int = 600
+    research_rate_limit: int = 20
+    research_rate_window_seconds: int = 600
     openai_api_key: str = ""
     groq_api_key: str = ""
     groq_model: str = "llama-3.1-8b-instant"

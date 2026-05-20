@@ -75,6 +75,9 @@ const copy = {
       { title: "Analyze", text: "Run the agent and get a brief", icon: "analyze" },
     ],
     uploadReady: "Report is indexed and ready for analysis.",
+    uploadDoneTitle: "Upload complete",
+    uploadDoneText: "The report is now searchable. The question box has been prepared for this document.",
+    analyzeUploaded: "Analyze uploaded report",
     providerLabel: "AI provider",
     providerHelp: "Auto tries configured providers in order and falls back safely.",
     providers: {
@@ -95,6 +98,7 @@ const copy = {
     uploading: "Uploading",
     indexing: "Indexing",
     uploadFailed: "Upload failed. Use a PDF or TXT file and try again.",
+    requestLimited: "Too many requests. Please wait a moment and try again.",
     indexedDocuments: "Indexed library",
     indexedHelp: "Private upload names and excerpts are masked in the public demo.",
     refresh: "Refresh",
@@ -176,6 +180,9 @@ const copy = {
       { title: "Analiz et", text: "Ajanı çalıştır ve brief al", icon: "analyze" },
     ],
     uploadReady: "Rapor indekslendi ve analize hazır.",
+    uploadDoneTitle: "Yükleme tamamlandı",
+    uploadDoneText: "Rapor artık aranabilir durumda. Soru alanı bu belge için hazırlandı.",
+    analyzeUploaded: "Yüklenen raporu analiz et",
     providerLabel: "AI sağlayıcı",
     providerHelp: "Otomatik seçenek ayarlı sağlayıcıları sırayla dener ve gerekirse güvenli yedeğe döner.",
     providers: {
@@ -196,6 +203,7 @@ const copy = {
     uploading: "Yükleniyor",
     indexing: "İşleniyor",
     uploadFailed: "Yükleme başarısız. PDF veya TXT dosyasıyla tekrar dene.",
+    requestLimited: "Çok fazla istek gönderildi. Biraz bekleyip tekrar dene.",
     indexedDocuments: "İndekslenen kütüphane",
     indexedHelp: "Public demoda yüklenen dosya adları ve pasajları maskelenir.",
     refresh: "Yenile",
@@ -358,6 +366,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<TabId>("answer");
   const [clientId] = useState(getClientId);
   const [copied, setCopied] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const uploadComplete = currentStage === t.stageIndexed;
 
   const activeWorkflowKeys = loading
@@ -427,9 +436,9 @@ function App() {
     refreshDocuments();
   }, [clientId]);
 
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault();
+  async function runAnalysis() {
     setLoading(true);
+    setErrorMessage("");
     setCurrentStage(String(t.stageSearching));
 
     try {
@@ -442,18 +451,27 @@ function App() {
       });
 
       if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error(String(t.requestLimited));
+        }
         throw new Error("Request failed");
       }
 
       setCurrentStage(String(t.stageWriting));
       setResult(await response.json());
       setCurrentStage(String(t.stageComplete));
-    } catch {
+    } catch (error) {
       setResult({ ...exampleResponses[language], question });
+      setErrorMessage(error instanceof Error ? error.message : "");
       setCurrentStage(String(t.stageFallback));
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    await runAnalysis();
   }
 
   async function handleUpload(event: ChangeEvent<HTMLInputElement>) {
@@ -465,6 +483,7 @@ function App() {
     const formData = new FormData();
     formData.append("file", file);
     setUploading(true);
+    setErrorMessage("");
     setUploadMessage(t.uploadingMessage(file.name));
     setCurrentStage(String(t.stageIndexing));
 
@@ -476,6 +495,9 @@ function App() {
       });
 
       if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error(String(t.requestLimited));
+        }
         throw new Error("Upload failed");
       }
 
@@ -484,8 +506,10 @@ function App() {
       await refreshDocuments();
       setQuestion(t.uploadedQuestion(payload.file_name));
       setCurrentStage(String(t.stageIndexed));
-    } catch {
-      setUploadMessage(String(t.uploadFailed));
+    } catch (error) {
+      const message = error instanceof Error && error.message !== "Upload failed" ? error.message : String(t.uploadFailed);
+      setUploadMessage(message);
+      setErrorMessage(message);
       setCurrentStage(String(t.stageUploadFailed));
     } finally {
       setUploading(false);
@@ -665,6 +689,19 @@ function App() {
               {uploading ? String(t.indexing) : String(t.upload)}
               <input type="file" accept=".pdf,.txt" onChange={handleUpload} disabled={uploading} />
             </label>
+            {uploadComplete && (
+              <div className="uploadSuccess">
+                <CheckCircle2 size={18} />
+                <div>
+                  <strong>{String(t.uploadDoneTitle)}</strong>
+                  <span>{String(t.uploadDoneText)}</span>
+                </div>
+                <button type="button" onClick={runAnalysis} disabled={loading}>
+                  {loading ? String(t.analyzing) : String(t.analyzeUploaded)}
+                </button>
+              </div>
+            )}
+            {errorMessage && <p className="inlineError">{errorMessage}</p>}
             <div className="uploadActions">
               {(t.uploadActions as string[]).map((action) => (
                 <button type="button" key={action} onClick={() => usePrompt(action)}>

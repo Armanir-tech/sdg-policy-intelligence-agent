@@ -2,10 +2,11 @@ from pathlib import Path
 import re
 from uuid import uuid4
 
-from fastapi import APIRouter, File, Header, HTTPException, UploadFile
+from fastapi import APIRouter, File, Header, HTTPException, Request, UploadFile
 
 from app.agents.policy_workflow import run_policy_workflow
 from app.core.config import settings
+from app.core.rate_limit import check_rate_limit
 from app.rag.ingest import (
     UPLOAD_DIR,
     ingest_sample_documents,
@@ -35,6 +36,11 @@ def safe_upload_stem(file_name: str | None) -> str:
     return cleaned[:48] or "document"
 
 
+def request_key(request: Request, client_id: str | None, action: str) -> str:
+    host = request.client.host if request.client else "unknown"
+    return f"{action}:{client_id or host}"
+
+
 @router.get("/health")
 def health_check() -> dict[str, str]:
     return {"status": "ok"}
@@ -54,6 +60,7 @@ def reset_documents() -> dict[str, int | str]:
 
 @router.post("/documents/upload")
 async def upload_document(
+    request: Request,
     file: UploadFile = File(...),
     x_client_id: str | None = Header(default=None),
 ) -> dict[str, int | str]:
@@ -61,6 +68,11 @@ async def upload_document(
     if suffix not in {".pdf", ".txt"}:
         raise HTTPException(status_code=400, detail="Only PDF and TXT files are supported.")
     client_id = normalize_client_id(x_client_id)
+    check_rate_limit(
+        request_key(request, client_id, "upload"),
+        settings.upload_rate_limit,
+        settings.upload_rate_window_seconds,
+    )
 
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     safe_name = f"{safe_upload_stem(file.filename)}-{uuid4().hex[:8]}{suffix}"
@@ -81,5 +93,10 @@ def documents(x_client_id: str | None = Header(default=None)) -> dict[str, list[
 
 
 @router.post("/research", response_model=ResearchResponse)
-def research(request: ResearchRequest) -> ResearchResponse:
-    return run_policy_workflow(request.question, request.language, request.provider, request.client_id)
+def research(payload: ResearchRequest, request: Request) -> ResearchResponse:
+    check_rate_limit(
+        request_key(request, payload.client_id, "research"),
+        settings.research_rate_limit,
+        settings.research_rate_window_seconds,
+    )
+    return run_policy_workflow(payload.question, payload.language, payload.provider, payload.client_id)

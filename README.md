@@ -220,6 +220,7 @@ This is a public portfolio demo, so it includes basic safeguards:
 - upload file names are sanitized before storage,
 - upload size is limited,
 - only PDF/TXT uploads are accepted,
+- upload and research endpoints include lightweight rate limiting for the public demo,
 - the backend sends basic security headers,
 - CORS is restricted to the expected frontend origins by default.
 
